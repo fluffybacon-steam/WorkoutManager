@@ -1,12 +1,15 @@
 .planner{
+    width:100vw;
 }
 
 .calendar{
+    margin-top: 20px;
     display: inline-grid;
     grid-auto-columns: 300px;
     grid-auto-flow: column;
     overflow-x: scroll;
     white-space: nowrap;
+    width:100%;
 }
     .day{
         text-align:center;
