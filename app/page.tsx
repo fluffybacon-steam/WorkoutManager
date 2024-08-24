@@ -87,7 +87,7 @@ export default function Home() {
             <h3>Instructions:</h3>
               <ol>
                 <li>Upload your worksheet spreadsheet to your Google Drive.</li>
-                <li>Save spreadsheet as a Google Sheet. Under 'File', click 'Save as a Google Sheet'.</li>
+                <li>Save spreadsheet as a Google Sheet. Under File, click Save as a Google Sheet.</li>
                 <li>Paste the URL of the Google sheet below.</li>
               </ol>
             <input
