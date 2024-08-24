@@ -24,8 +24,8 @@ async function getSheet(auth: typeof OAuth2Client, sheetUrl: string){
     const sheetData = await formateGoogleSheet(sheet);
     return sheetData;
   } catch (err) {
-    console.log(err);
-    return err.message;
+    console.log((err as Error).message);  // Cast err to Error
+    return (err as Error).message;  
   }
 }
 
