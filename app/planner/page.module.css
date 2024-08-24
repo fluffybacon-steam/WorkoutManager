@@ -1,0 +1,28 @@
+.planner{
+}
+
+.calendar{
+    display: inline-grid;
+    grid-auto-columns: 300px;
+    grid-auto-flow: column;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+    .day{
+        text-align:center;
+        background:none;
+        grid-column:span 1;
+        grid-row: 1/2;
+        border:1px solid white;
+        padding:25px;
+    }
+    .complete{
+        background:var(--secondary);
+    }
+    .current{
+        border:10px solid var(--secondary);
+    }
+
+.exercises{
+    padding:clamp(15px,5vw, 50px);
+}

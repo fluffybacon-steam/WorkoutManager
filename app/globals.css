@@ -1,0 +1,83 @@
+:root {
+  --max-width: 1100px;
+  --border-radius: 12px;
+  --font-mono: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
+    "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
+    "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+  --body-bg:white;
+  --primary : #D5B942;
+  --secondary : #E3DE8F;
+  --tertiary: #BFCBC2;
+  --quad: #EDFBC1;  
+  --fontColor: black;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-bg:black;
+    --primary : #2B3A67;
+    --secondary : #496A81;
+    --buttonBg: #66999B;
+    --quad: #FFC482;
+    --fontColor: white;
+  }
+}
+
+[hidden] { opacity: 0; }
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html { 
+  line-sizing: normal;
+  font-size:24px;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: var(--body-bg);
+}
+
+h1{
+  text-align: center;
+  border-bottom:2px solid var(--quad);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+
+@keyframes fadeup {
+  from {
+    opacity: 0;
+    translate:0px 50px;
+  } to {
+    opacity: 1;
+    translate:0px 0px;
+  }
+}
+
+@keyframes blur {
+  from {
+    backdrop-filter: blur(0px);
+  } to {
+    backdrop-filter: blur(4px);
+  }
+  
+}
