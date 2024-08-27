@@ -5,18 +5,19 @@ import {Warmups} from '../components/Warmups';
 import { Calendar } from '../components/Calendar';
 import {Exercise} from '../components/Exercise';
 import {Blank} from '../components/Blank';
-import styles from './page.module.css';
+import styles from './page.module.scss';
 import axios from 'axios';
 
 interface Workout {
-    day: string
-    exercises: Array<any>
+    day: string;
+    complete: boolean;
+    exercises: Array<any>;
 }
 
 interface sheetData {
-    warmUps: Object;       // Array of strings representing warm-up exercises
-    weakPoints: Object;    // Array of strings representing weak points to focus on
-    workoutDays: Object;     // Number representing the days of workout per week
+    warmUps: Object;     
+    weakPoints: Object;    
+    workoutDays: Object;     
 }
 
 export default function Planner(){
@@ -76,7 +77,7 @@ export default function Planner(){
     }, []);
 
     useEffect(()=>{
-        console.log('currentDay',currentDay)
+        
     },[currentDay]);
     
     return(
@@ -84,16 +85,25 @@ export default function Planner(){
             <Calendar styles={styles} workoutDays={workoutDays} setCurrentDay={setCurrentDay} currentDay={currentDay}/>
             <div className={styles.exercises}>
                 { currentDay ? 
-                    currentDay?.exercises.length > 0 ? (
-                    currentDay.exercises.map((exercise, index) => (
-                        <Exercise key={index} exercise={exercise}/>
-                    ))
+                    currentDay?.exercises ? (
+                    currentDay.exercises.map((exercise, index) => {
+                        if(index == 0 && !currentDay.complete){
+                            return (
+                                <>
+                                    <Warmups warmUps={warmUps} showWarmups={showWarmups}/>
+                                    <Exercise key={index} exercise={exercise}/>
+                                </>
+                            )
+                        }
+                        return (
+                            <Exercise key={index} exercise={exercise}/>
+                        )
+                    })
                     ) : (
                         <Blank  />
                     ) : 'Pick a day'
                 } 
             </div>
-            <Warmups warmUps={warmUps} showWarmups={showWarmups}/>
         </div>
     )
 }

@@ -3,7 +3,7 @@ const { OAuth2Client } = require('google-auth-library');
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 
 const CREDENTIALS = require('../oauth2.keys.json');
-const { redirect_uris } = CREDENTIALS.web;
+const redirect_uri = process.env.REDIRECT_URI;
 const client_id = process.env.GOOGLE_CLIENT_ID;
 const client_secret = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     console.log('body', reps, lbs, rowI);
     const client = new OAuth2Client(
-        client_id, client_secret, redirect_uris[1]
+        client_id, client_secret, redirect_uri
     );
     await client.setCredentials(credentials);
     console.log("set creds");

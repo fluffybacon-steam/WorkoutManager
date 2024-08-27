@@ -15,11 +15,16 @@ export function Calendar({styles, workoutDays, setCurrentDay, currentDay}){
     return(
         <div className={styles.calendar}>
             {workoutDays.map((day,index)=>{
+                console.log(day);
+                const text = (day.day) ? day.day : day;
                 return (
-                    <button key={index} 
-                    onClick={()=>{selectDay(index);}} 
-                    className={(currentDay == day) ? `${styles.day} ${styles.current}` : `${styles.day}`}>
-                        {day.day}
+                    <button 
+                        key={index} 
+                        data-complete={day?.complete}
+                        onClick={()=>{selectDay(index);}} 
+                        className={(day == currentDay) ? `day current` : `day`}
+                    >
+                        {text}
                     </button>
                 )
             })}

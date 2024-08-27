@@ -22,16 +22,12 @@ export default function Home() {
         alert("No sheet url given");
       }
 
-      const savedCredentials = window.localStorage.getItem("ga_credentials");
-      if(savedCredentials && savedCredentials != 'undefined'){
-        console.log("use saved cred");
+      const savedCredentialsStr = window.localStorage.getItem("ga_credentials");
+      if(savedCredentialsStr && savedCredentialsStr != 'undefined'){
         //Old credentials exist, use thoses
-        console.log('Use saved credentials to fetch');
-        const credentials = await axios.get(`/api/fetchAuth`, {
-            params: {
-              savedCredentials : savedCredentials,
-            }
-            }).then((res)=>{
+        console.log('Use saved credentials to fetch',savedCredentialsStr);
+        const credentials = await axios.post(`/api/fetchAuth`, {savedCredentialsStr}
+            ).then((res)=>{
               return res.data.credentials;
             }).catch((err)=>{
               console.log('Failed to use saved creds',err);
@@ -39,10 +35,11 @@ export default function Home() {
             });
 
         if(credentials){
+          window.localStorage.setItem("ga_credentials",JSON.stringify(credentials));
           //Grab sheet using creds, then redirect to /planner
           const sheetData = await axios.get('/api/fetchSheet',{
               params: {
-                credentials : credentials,
+                credentials : JSON.stringify(credentials),
                 sheetUrl : userSheetUrl
               }
             }).then((res)=>{
@@ -52,7 +49,7 @@ export default function Home() {
               return false;
             })
           if(sheetData){
-            window.localStorage.setItem("sheetData",sheetData);
+            window.localStorage.setItem("sheetData",JSON.stringify(sheetData));
             router.push('/planner');
           }
         } else {
@@ -76,10 +73,19 @@ export default function Home() {
     };
 
     const clearCache = () =>{
-      localStorage.removeItem("ga_credentials")
-      localStorage.removeItem("sheetData")
-      localStorage.removeItem("sheetUrl")
+      window.localStorage.removeItem("ga_credentials");
+      window.localStorage.removeItem("sheetData");
+      window.localStorage.removeItem("sheetUrl");
+      setUserSheetUrl('');
     }
+
+    useEffect(()=>{
+      const sheetUrl = window.localStorage.getItem('sheetUrl');
+      console.log(sheetUrl);
+      if(sheetUrl){
+        setUserSheetUrl(sheetUrl);
+      }
+    },[])
 
     return (
         <div className={styles.home}>
@@ -92,12 +98,13 @@ export default function Home() {
               </ol>
             <input
                 type="text"
-                value={userSheetUrl}
+                defaultValue={userSheetUrl}
                 onChange={(e) => setUserSheetUrl(e.target.value)}
                 placeholder="Enter Google Sheets URL"
             />
-            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load Workout</button>
-            <button  onClick={()=>{clearCache}}>Clear cached data</button>
+            <button disabled={!window.localStorage.getItem("sheetData")} onClick={()=>{router.push('/planner');}}>Load from memory</button>
+            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load Workout (Resync)</button>
+            <button onClick={clearCache}>Clear cached data</button>
         </div>
     );
 }

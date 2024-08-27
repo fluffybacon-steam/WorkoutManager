@@ -15,16 +15,9 @@ export function Exercise({exercise}){
 
     const [reps, setReps] = useState([]);
     const [lbs, setLbs] = useState([]);
-    
-    useEffect(()=>{
-        console.log('useEffect exercise',exercise);
-    },[]);
-
-    useEffect(()=>{
-        console.log(reps,lbs);
-    },[reps,lbs]);
 
     const saveExercise = async () =>{
+        //Save exercise to spreadsheet
         const savedCreds = window.localStorage.getItem("ga_credentials");
         const sheetUrl = window.localStorage.getItem("sheetUrl");
         if(savedCreds && sheetUrl){
@@ -111,23 +104,23 @@ export function Exercise({exercise}){
 const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
     console.log("Table loaded");
     const colorScale = {
-        5.0:"#00FF00",
-        5.5:"#1AE600",
-        6.0:"#33CC00",
-        6.5:"#4DB300",
-        7.0:"#669900",
-        7.5:"#808000",
-        8.0:"#996600",
-        8.5:"#B34D00",
-        9.0:"#CC3300",
-        9.5:"#E61A00",
-        10:"#FF0000"
+        5.0: "#00FF00", // Bright green
+        5.5: "#66CC00", // A more yellowish-green
+        6.0: "#CCCC00", // Yellow-green
+        6.5: "#FF9900", // Yellow-orange
+        7.0: "#FF6600", // Orange
+        7.5: "#FF3300", // Orange-red
+        8.0: "#FF0000", // Red
+        8.5: "#CC0000", // Darker red
+        9.0: "#990000", // Even darker red
+        9.5: "#660000", // Very dark red
+        10: "#330000"  // Almost black red
     };
     const colorLegend = Object.entries(colorScale).sort(([a], [b]) => parseFloat(a) - parseFloat(b));
     let earlyRPEColor = convertRPEtoNum(exercise.earlySetRpe);
     earlyRPEColor = colorScale?.[earlyRPEColor];
-    let lateRPEColor = convertRPEtoNum(exercise.lateSetRpe);
-    lateRPEColor = colorScale?.[lateRPEColor];
+    let lastRPEColor = convertRPEtoNum(exercise.lastSetRpe);
+    lastRPEColor = colorScale?.[lastRPEColor];
     const lastSet_i = exercise.workingSets - 1;
 
 
@@ -163,7 +156,7 @@ const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
                     <div 
                         className="cell set"
                         key={i} 
-                        style={{backgroundColor: ((i == lastSet_i) ? 'red' : 'orange')}}
+                        style={{backgroundColor: ((i == lastSet_i) ? lastRPEColor : earlyRPEColor)}}
                     >
                         <span>Set #{i + 1}</span>
                         {savedReps 
@@ -207,7 +200,7 @@ const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
             })}
             <div 
                 className="cell last-set-tech" 
-                style={{backgroundColor: lateRPEColor}}
+                style={{backgroundColor: lastRPEColor}}
             >
                 <b>Last Set Tech:</b> {exercise.lastSetTech}
             </div>
@@ -232,6 +225,10 @@ const Movements = ({exercise}) => {
                     return (movement && video) ? [movement, video] : false;
                 })
                 .filter(Boolean);
+    console.log('movements',movements);
+    if(movements.length == 0){
+        return ("Coming sooooon!");
+    }
     
     return (
         <div className={'movements'}>

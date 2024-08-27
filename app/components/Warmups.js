@@ -9,7 +9,6 @@ export function Warmups({warmUps, showWarmups}) {
 
     return(
         <div className={showWarmups ? `${styles.wrapper} ${styles.visible}` : `${styles.wrapper}` }>
-            <button onClick={()=>{ router.back()}}>X</button>
             <table>
                 <thead>
                 <tr>

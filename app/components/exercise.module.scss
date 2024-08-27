@@ -18,11 +18,9 @@
             gap:10px;
             font-size:1rem;
             min-width:200px;
-            background:var(--bkg);
             .move{
                 grid-area:1/1/1/1;
-                background:var(--bkg);
-                z-index: 0;
+                opacity: 0;
                 h3{
                     display:inline-block;
                     width:fit-content;
@@ -38,9 +36,10 @@
                         width:100%;
                     }
                 }
-            }
-            .move[data-selected=true]{
-                z-index: 1;
+                &[data-selected=true]{
+                    z-index:1;
+                    opacity:1;
+                }
             }
             .selectors{
                 grid-area:2/1/2/1;
@@ -112,10 +111,11 @@
             }
         }
         .pseudo_table{
+            --gap:5px;
             flex-basis: 100%;
             display:grid;
             grid-template-columns: auto auto;
-            gap:5px;
+            gap:var(--gap);
             .cell {
                 text-align: center;
                 display: grid;
@@ -153,15 +153,21 @@
                     text-align: center;
                 }
             }
+            .set:not(:has(~ .set)){
+                border-bottom:none;
+            }
             .last-set-tech{
+                margin-top:calc(-1 * var(--gap));
                 display: block;
                 font-size:0.8rem;
                 text-align: left;
                 padding:5px;
+                border-top:none;
             }
             .color-legend{
                 display: flex;
                 margin-top:15px;
+                border:none;
                 p{
                     padding:5px;
                 }
@@ -172,8 +178,11 @@
                     padding:5px;
                 }
                 @media screen and (max-width:768px) {
+                    flex-wrap: wrap;
                     p{
-                        display:none;
+                        flex-basis: 100%;
+                        text-align: left;
+                        font-size: 0.6rem;
                     }
                 }
                 @media screen and (max-width:500px) {

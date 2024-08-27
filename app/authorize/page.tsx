@@ -26,6 +26,8 @@ function AuthorizeComponent() {
             });
         console.log('post setTotken',credentials);
         if(credentials){
+            //Save credentials
+            window.localStorage.setItem("ga_credentials",JSON.stringify(credentials));
             //Grab sheet using creds, then redirect to /planner
             const sheetUrl = window.localStorage.getItem("sheetUrl");
             if(!sheetUrl){

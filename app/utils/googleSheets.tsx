@@ -16,10 +16,12 @@ interface Exercise {
 
 class Workout {
   day: string;
+  complete: boolean;
   exercises: any[];
 
   constructor(day: string) {
     this.day = day;
+    this.complete = false;
     this.exercises = [];
   }
 
@@ -29,6 +31,18 @@ class Workout {
       exercise.sub1_vid =  videoMap.get(exercise.sub1);
       exercise.sub2_vid =  videoMap.get(exercise.sub2);
     })
+  }
+
+  private isComplete(sets: any[] | undefined){
+    if (!sets || sets.length === 0) return;
+    for (const value of sets) {
+      console.log(value);
+        if (value !== null) {
+          this.complete = true;
+          console.log("true",value);
+          return
+        }
+    }
   }
 
 
@@ -47,8 +61,13 @@ class Workout {
       earlySetRpe  : data.earlySetRpe,
       lastSetRpe  : data.lastSetRpe,
       rest  : data.rest,
-      notes  : data.notes
+      notes  : data.notes,
     };
+    if(this.complete == false){
+      console.log(this.day);
+      console.log(exercise.recordedSets);
+      this.isComplete(exercise.recordedSets);
+    }
       //console.log("exercise object",exercise);
     this.exercises.push(exercise);
   }
@@ -110,39 +129,85 @@ export async function formateGoogleSheet(sheet: any) {
   //Workout days are defined in .getCell(59,0) to .getCell(637,0) 
   var workoutDays = [];
   let currentDay = undefined;
-  for (let i = 59; i <= 637; i++) {
+  for (let i = 59; i <= 101; i++) {
+  // for (let i = 59; i <= 637; i++) {
     const cellString = sheet.getCell(i, 0).stringValue;
-    if((cellString == undefined || cellString == '') && currentDay != undefined){
-      //during current day
-      currentDay.addExercise({
-        primary: sheet.getCell(i, 1).stringValue || sheet.getCell(i, 1).formattedValue,
-        sub1: sheet.getCell(i, 13).stringValue || sheet.getCell(i, 13).formattedValue,
-        sub2: sheet.getCell(i, 14).stringValue || sheet.getCell(i, 14).formattedValue,
-        lastSetTech : sheet.getCell(i, 2).stringValue || sheet.getCell(i, 2).formattedValue,
-        warmupSets : sheet.getCell(i, 3).stringValue || sheet.getCell(i, 3).formattedValue,
-        workingSets : parseInt(sheet.getCell(i, 4).stringValue || sheet.getCell(i, 4).formattedValue),
-        repRange : sheet.getCell(i, 5).stringValue || sheet.getCell(i, 5).formattedValue,
-        rowOrigin : i,
-        recordedSets : [
-            sheet.getCell(i, 6).stringValue || sheet.getCell(i, 6).formattedValue,
-            sheet.getCell(i, 7).stringValue || sheet.getCell(i, 7).formattedValue,
-            sheet.getCell(i, 8).stringValue || sheet.getCell(i, 8).formattedValue,
-            sheet.getCell(i, 9).stringValue || sheet.getCell(i, 9).formattedValue
-        ],
-        earlySetRpe : sheet.getCell(i, 10).stringValue || sheet.getCell(i, 10).formattedValue,
-        lastSetRpe : sheet.getCell(i, 11).stringValue || sheet.getCell(i, 11).formattedValue,
-        rest : sheet.getCell(i, 12).stringValue || sheet.getCell(i, 12).formattedValue,
-        notes : sheet.getCell(i, 15).stringValue || sheet.getCell(i, 15).formattedValue
-    });
-      currentDay.addVideos(videoMap);
-    } else if(cellString.toLowerCase().includes('week') || cellString.includes('rest day')){
-      workoutDays.push(cellString);
-    } else {
-      //new day
-      if(currentDay){
-        workoutDays.push(currentDay);
+    const adjacentCell = sheet.getCell(i, 1).stringValue;
+    console.log('\n');
+    console.log('cellString:',cellString);
+    console.log('adjacentCell:',adjacentCell);
+    if((cellString == undefined || cellString == '')){
+      console.log("IF:blank cell");
+      //Blank cell.
+      if(currentDay != undefined && (adjacentCell != undefined || adjacentCell != '' )){
+        //Exercise, add to current day
+        console.log('     during current day');
+        currentDay.addExercise({
+          primary: sheet.getCell(i, 1).stringValue || sheet.getCell(i, 1).formattedValue,
+          sub1: sheet.getCell(i, 13).stringValue || sheet.getCell(i, 13).formattedValue,
+          sub2: sheet.getCell(i, 14).stringValue || sheet.getCell(i, 14).formattedValue,
+          lastSetTech : sheet.getCell(i, 2).stringValue || sheet.getCell(i, 2).formattedValue,
+          warmupSets : sheet.getCell(i, 3).stringValue || sheet.getCell(i, 3).formattedValue,
+          workingSets : parseInt(sheet.getCell(i, 4).stringValue || sheet.getCell(i, 4).formattedValue),
+          repRange : sheet.getCell(i, 5).stringValue || sheet.getCell(i, 5).formattedValue,
+          rowOrigin : i,
+          recordedSets : [
+              sheet.getCell(i, 6).stringValue || sheet.getCell(i, 6).formattedValue,
+              sheet.getCell(i, 7).stringValue || sheet.getCell(i, 7).formattedValue,
+              sheet.getCell(i, 8).stringValue || sheet.getCell(i, 8).formattedValue,
+              sheet.getCell(i, 9).stringValue || sheet.getCell(i, 9).formattedValue
+          ],
+          earlySetRpe : sheet.getCell(i, 10).stringValue || sheet.getCell(i, 10).formattedValue,
+          lastSetRpe : sheet.getCell(i, 11).stringValue || sheet.getCell(i, 11).formattedValue,
+          rest : sheet.getCell(i, 12).stringValue || sheet.getCell(i, 12).formattedValue,
+          notes : sheet.getCell(i, 15).stringValue || sheet.getCell(i, 15).formattedValue
+        });
+        currentDay.addVideos(videoMap);
       }
-      currentDay = new Workout(cellString);
+
+    } else {
+      console.log("ELSE:cell has text");
+      //Cell has some text
+      if(cellString.toLowerCase().includes('week') || cellString.toLowerCase().includes('rest day')){
+        //Rest Day or Week header
+        console.log('      week/rest, end current day & add rest day');
+        if(currentDay){
+          workoutDays.push(currentDay);
+          currentDay = undefined;
+        }
+        if(cellString.toLowerCase().includes('rest day')){
+          workoutDays.push(cellString);
+        }
+      } else if (adjacentCell != undefined || adjacentCell != '' ){
+        //New day
+        console.log('     New day, end current day');
+        if(currentDay){
+          workoutDays.push(currentDay);
+        }
+
+        currentDay = new Workout(cellString);
+        currentDay.addExercise({
+          primary: sheet.getCell(i, 1).stringValue || sheet.getCell(i, 1).formattedValue,
+          sub1: sheet.getCell(i, 13).stringValue || sheet.getCell(i, 13).formattedValue,
+          sub2: sheet.getCell(i, 14).stringValue || sheet.getCell(i, 14).formattedValue,
+          lastSetTech : sheet.getCell(i, 2).stringValue || sheet.getCell(i, 2).formattedValue,
+          warmupSets : sheet.getCell(i, 3).stringValue || sheet.getCell(i, 3).formattedValue,
+          workingSets : parseInt(sheet.getCell(i, 4).stringValue || sheet.getCell(i, 4).formattedValue),
+          repRange : sheet.getCell(i, 5).stringValue || sheet.getCell(i, 5).formattedValue,
+          rowOrigin : i,
+          recordedSets : [
+              sheet.getCell(i, 6).stringValue || sheet.getCell(i, 6).formattedValue,
+              sheet.getCell(i, 7).stringValue || sheet.getCell(i, 7).formattedValue,
+              sheet.getCell(i, 8).stringValue || sheet.getCell(i, 8).formattedValue,
+              sheet.getCell(i, 9).stringValue || sheet.getCell(i, 9).formattedValue
+          ],
+          earlySetRpe : sheet.getCell(i, 10).stringValue || sheet.getCell(i, 10).formattedValue,
+          lastSetRpe : sheet.getCell(i, 11).stringValue || sheet.getCell(i, 11).formattedValue,
+          rest : sheet.getCell(i, 12).stringValue || sheet.getCell(i, 12).formattedValue,
+          notes : sheet.getCell(i, 15).stringValue || sheet.getCell(i, 15).formattedValue
+        });
+        currentDay.addVideos(videoMap);
+      }
     }
 
     //WeakPoints are defined in .getCell(26,4) to .getCell(54,13) 
