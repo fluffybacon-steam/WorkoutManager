@@ -3,10 +3,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 const { OAuth2Client } = require('google-auth-library');
 import { GoogleSpreadsheet } from 'google-spreadsheet';
-import { cookies } from 'next/headers';
 import {formateGoogleSheet} from '../../utils/googleSheets';
 
-const CREDENTIALS = require('../oauth2.keys.json');
 const redirect_uri = process.env.REDIRECT_URI;
 const client_id = process.env.GOOGLE_CLIENT_ID;
 const client_secret = process.env.GOOGLE_CLIENT_SECRET;

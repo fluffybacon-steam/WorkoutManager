@@ -1,5 +1,5 @@
 .planner{
-    width:100vw;
+    width:100%;
 }
 
 .calendar{
@@ -16,7 +16,9 @@
             background:none;
             grid-column:span 1;
             grid-row: 1/2;
-            border:1px solid white;
+            border-color: white;
+            border-width: 5px 2.5px;
+            border-style: solid;
             padding:25px;
         }
         [data-complete=true] + .day:not([data-complete]),
@@ -24,7 +26,7 @@
             background:var(--secondary);
         }
         .current{
-            border:10px solid var(--secondary);
+            border-color: red;
         }
     }
 }

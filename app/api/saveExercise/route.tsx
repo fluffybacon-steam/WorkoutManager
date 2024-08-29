@@ -2,25 +2,29 @@ import { NextResponse, NextRequest } from 'next/server';
 const { OAuth2Client } = require('google-auth-library');
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 
-const CREDENTIALS = require('../oauth2.keys.json');
 const redirect_uri = process.env.REDIRECT_URI;
 const client_id = process.env.GOOGLE_CLIENT_ID;
 const client_secret = process.env.GOOGLE_CLIENT_SECRET;
 
 export async function POST(req: NextRequest) {
     const body = await req.json(); // Parse the body as JSON
-    console.log(body);
-    const { credentials, reps, lbs, rowI } = body;
+    console.log("saveExercise POST",body);
+    const { credentials, reps, lbs, rowI, sheetUrl } = body;
 
-    console.log('body', reps, lbs, rowI);
+    console.log('credentials',credentials)
+    console.log('reps', reps);
+    console.log('lbs', lbs);
+    console.log('rowI', rowI);
+    console.log('sheetUrl', sheetUrl);
     const client = new OAuth2Client(
         client_id, client_secret, redirect_uri
     );
-    await client.setCredentials(credentials);
-    console.log("set creds");
-    let sheetUrl = '';
+    await client.setCredentials(credentials.credentials);
+    console.log("set creds...client",client);
+    // let sheetUrl = '';
       
     let sheetId = (sheetUrl) ? sheetUrl.match(/(?<=\/d\/)[\w-]+/) : null;
+    console.log(sheetId,sheetId.length);
     if(sheetId === null || sheetId.length != 1){
         return NextResponse.json({ error: 'Invalid sheet URL' }, { status: 400 });;
     }

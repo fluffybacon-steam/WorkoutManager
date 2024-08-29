@@ -17,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <div className='popup' role="alertdialog"></div>
         <h1>Workout Planner</h1>
         {children}
         <footer>

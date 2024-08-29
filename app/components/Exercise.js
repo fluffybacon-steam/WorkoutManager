@@ -1,11 +1,61 @@
 'use client'
-import { useEffect, useState} from 'react';
+import { useEffect, useState, useRef} from 'react';
 import styles from './exercise.module.scss';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import { VidIcon } from './VidIcon';
-import axios from 'axios';
+import {DragHandle} from './DragHandle';
+import gsap from 'gsap';
+import { useGSAP } from "@gsap/react";
+import {Draggable} from "gsap/all";
+gsap.registerPlugin(useGSAP);
+gsap.registerPlugin(Draggable);
 
-export function Exercise({exercise}){
+export function Exercise({saveExercise, exercise}){
+    const cardRef = useRef();
+    const { contextSafe } = useGSAP({ scope: cardRef });
+
+    useEffect(()=>{
+        if(!cardRef.current){
+            return
+        }
+        const offset = `-${cardRef.current.offsetWidth/2}`;
+        //  const offset = -100;
+        Draggable.create(cardRef.current, {
+            type: "left",
+            bounds: {minX: offset, maxX: 10},
+            dragResistance: 0.1,
+            onDragEnd: function () {
+                const leftPos = parseFloat(cardRef.current.style.left);
+                console.log("drag ended",cardRef.current,leftPos, leftPos, 0.75*offset);
+                if(leftPos <= 0.75*offset){
+                    let animation = gsap.timeline();
+                    animation.to(cardRef.current,{
+                        opacity:0,
+                        left:(offset*3),
+                        duration:0.8
+                    })
+                    animation.to(cardRef.current,{
+                        height: '0px',
+                        duration:0.5
+                    }, '<=0.25');
+                    // animation.eventCallback('onComplete', () => {
+                    //     if (cardRef.current) {
+                    //         cardRef.current.style.display = 'none';
+                    //     }
+                    // });
+                    saveExercise(reps,lbs,exercise.rowOrigin);
+                    animation.play();
+                } else {
+                    gsap.to(cardRef.current,{
+                        left:0
+                    })
+                }
+            },
+        });
+
+    },[cardRef])
+
+
     const restMinMax = parseTimeRange(exercise.rest);
     const defaultDuration = restMinMax.min/2 + restMinMax.max/2;
     
@@ -13,50 +63,18 @@ export function Exercise({exercise}){
     const [timerState, setTimerState] = useState(false);
     const [timerDuration, setTimerDuration] = useState(null);
 
-    const [reps, setReps] = useState([]);
-    const [lbs, setLbs] = useState([]);
+    //Load in recordedSet into state variables
+    const [reps, setReps] = useState(exercise.recordedSets.map((set)=>{ return (set) ? parseFloat(set.split('x')[0]) : 0}));
+    const [lbs, setLbs] = useState(exercise.recordedSets.map((set)=>{ return (set && set.includes('x')) ? parseFloat(set.split('x')[1]) : 0}));
 
-    const saveExercise = async () =>{
-        //Save exercise to spreadsheet
-        const savedCreds = window.localStorage.getItem("ga_credentials");
-        const sheetUrl = window.localStorage.getItem("sheetUrl");
-        if(savedCreds && sheetUrl){
-            const credentials = await axios.get(`/api/fetchAuth`, { 
-                params: {
-                    savedCredentials : savedCreds,
-                  }
-                }).then((res)=>{
-                  return res.data.credentials;
-                }).catch((err)=>{
-                  console.log('Failed to use saved creds',err,err.response.data?.auth_url);
-                  if(err.response.status == 307){
-                    // router.replace(err.response.data?.auth_url);
-                  }
-                });
-            if(credentials){
-                axios.post(`/api/saveExercise`, { credentials
-                    }).then((res)=>{
-                        console.log(res);
-                        alert("Saved exercise!");
-                    }).catch((err)=>{
-                        console.log(err);
-                        alert("Error: Unable to save exercise");
-                    });
-            } else {
-                alert("Error: No OAuth2 credentials found");
-            }
-        } else {
-            alert("Error: Could not save exercise as either credentials or sheet url are not saved");
-        }
-    }
 
     if(!exercise){
         return null
     }
 
     return(
-        <div className={styles.card}>
-            <button style={{flexBasis: '100%',height:'50px'}} onClick={()=>saveExercise()}>Save this exercise</button>
+        <div className={styles.card} ref={cardRef}>
+            <DragHandle />
             <Movements exercise={exercise} />
             <div className="rest-time">
                 {exercise.rest}
@@ -102,7 +120,6 @@ export function Exercise({exercise}){
 }
 
 const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
-    console.log("Table loaded");
     const colorScale = {
         5.0: "#00FF00", // Bright green
         5.5: "#66CC00", // A more yellowish-green
@@ -111,22 +128,26 @@ const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
         7.0: "#FF6600", // Orange
         7.5: "#FF3300", // Orange-red
         8.0: "#FF0000", // Red
+        //Everything above 8.0 needs to be white font, everyhting below black
         8.5: "#CC0000", // Darker red
         9.0: "#990000", // Even darker red
         9.5: "#660000", // Very dark red
         10: "#330000"  // Almost black red
     };
+    const demarcation = 8;
+
     const colorLegend = Object.entries(colorScale).sort(([a], [b]) => parseFloat(a) - parseFloat(b));
-    let earlyRPEColor = convertRPEtoNum(exercise.earlySetRpe);
-    earlyRPEColor = colorScale?.[earlyRPEColor];
-    let lastRPEColor = convertRPEtoNum(exercise.lastSetRpe);
-    lastRPEColor = colorScale?.[lastRPEColor];
+    let earlyRPEColor_num = convertRPEtoNum(exercise.earlySetRpe);
+    const earlyRPEColor = colorScale?.[earlyRPEColor_num];
+    let lastRPEColor_num = convertRPEtoNum(exercise.lastSetRpe);
+    const lastRPEColor = colorScale?.[lastRPEColor_num];
+
     const lastSet_i = exercise.workingSets - 1;
 
-
+    let repsRange = exercise.repRange.split(',');
+    repsRange = (repsRange.length > 1) ? repsRange : Array(exercise.workingSets - 1).fill(exercise.repRange);
 
     const handleInput = (i,value,type) => {
-        console.log("handleInput");
         let tempData;
         if(type == 'reps'){
             //Reps
@@ -139,71 +160,71 @@ const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
             tempData[i] = value;
             setLbs(tempData);
         }
-        console.log(reps,lbs)
     }
 
 
     return (
         <div className="pseudo_table">
             <div className="cell warmup">
-                <span>Warm-up Sets</span>
-                <p>{exercise.warmupSets}</p>
+                <p>
+                    Warm-up sets: {exercise.warmupSets}
+                    </p>
             </div>
             {Array.from({ length: exercise.workingSets }, (_, i) => {
-                let savedReps = (exercise?.recordedSets[i]) ? exercise?.recordedSets[i].split('x') : null;
-                savedReps = (savedReps) ? savedReps[0]: exercise?.recordedSets[i];
+                let savedReps = (exercise?.recordedSets[i]) ? exercise?.recordedSets[i].split('x').map(num => parseFloat(num)) : null;
+                savedReps = (savedReps) ? savedReps : [exercise?.recordedSets[i]];
+                let bg_color = (i == lastSet_i) ? lastRPEColor : earlyRPEColor;
+                let ft_color = (i == lastSet_i) 
+                    ? (lastRPEColor_num >= demarcation) ? 'white' : 'black'
+                    : (earlyRPEColor_num >= demarcation) ? 'white' : 'black';
                 return (
                     <div 
                         className="cell set"
                         key={i} 
-                        style={{backgroundColor: ((i == lastSet_i) ? lastRPEColor : earlyRPEColor)}}
+                        style={{
+                            backgroundColor: bg_color, 
+                            color: ft_color
+                        }}
                     >
+                        {((i == exercise.workingSets - 1) 
+                            ? <span className='technique'>
+                                <b>Last Set Tech:</b> {exercise.lastSetTech}
+                            </span>
+                            : null
+                        )}
                         <span>Set #{i + 1}</span>
-                        {savedReps 
-                            ?
-                            <label>
-                                <p>Reps/Lbs (Target:{exercise.repRange})</p>
-                                <input 
-                                    disabled={true}
-                                    type="number" 
-                                    min="0" 
-                                    max="100" 
-                                    value={savedReps} 
-                                />
-                            </label>
-                            : 
-                            <>
-                            <label>
-                                <p>Reps ({exercise.repRange})</p>
-                                <input 
-                                    type="number" 
-                                    min="0" 
-                                    max="100" 
-                                    defaultValue={0} 
-                                    onChange={(e)=>handleInput(i,e.target.value,'reps')}
-                                />
-                            </label>
-                            <label>
-                                <p>Lbs</p>
-                                <input 
-                                    type="number" 
-                                    min="0" 
-                                    max="100" 
-                                    defaultValue={0}
-                                    onChange={(e)=>handleInput(i,e.target.value,'lbs')}
-                                />
-                            </label>
-                            </>
-                        }
+                        <label className='rep-range'>
+                            <p>Range: {repsRange[i]}</p>
+                        </label>
+                        <label>
+                            <p>Reps</p>
+                            <input 
+                                type="number" 
+                                min="0" 
+                                max="100" 
+                                defaultValue={savedReps[0]} 
+                                onChange={(e)=>handleInput(i,e.target.value,'reps')}
+                            />
+                        </label>
+                        <label>
+                            <p>Lbs</p>
+                            <input 
+                                type="number" 
+                                min="0" 
+                                max="100" 
+                                defaultValue={(savedReps.length == 2) ? savedReps[1] : 0}
+                                onChange={(e)=>handleInput(i,e.target.value,'lbs')}
+                            />
+                        </label>
                     </div>
                  )
             })}
-            <div 
+            {/* <div 
                 className="cell last-set-tech" 
                 style={{backgroundColor: lastRPEColor}}
             >
                 <b>Last Set Tech:</b> {exercise.lastSetTech}
-            </div>
+            </div> */}
             <div className="cell color-legend">
                 <p>RPE Scale</p>
                 {colorLegend.map(([value, color]) => (
@@ -225,9 +246,8 @@ const Movements = ({exercise}) => {
                     return (movement && video) ? [movement, video] : false;
                 })
                 .filter(Boolean);
-    console.log('movements',movements);
     if(movements.length == 0){
-        return ("Coming sooooon!");
+        return ("coming soon")
     }
     
     return (
@@ -244,7 +264,7 @@ const Movements = ({exercise}) => {
             ))}
             <div className={'selectors'}>
                 {movements.map((_, index)=>(
-                    <button key={index} onClick={()=>{setSelectedMove(index)}}>{index+1}</button>
+                    <button key={index} className={(selectedMove == index) ? 'active' : ''} onClick={()=>{setSelectedMove(index)}}>{index+1}</button>
                 ))}
             </div>
         </div>
@@ -284,7 +304,6 @@ const convertTime = (rawSecs) => {
 }
 
 function convertRPEtoNum(value) {
-    console.log('convertRPEtoNum',value);
     if(!value){
         return
     }

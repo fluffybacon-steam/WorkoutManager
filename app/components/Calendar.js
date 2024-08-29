@@ -2,7 +2,6 @@
 import { useState } from 'react';
 
 export function Calendar({styles, workoutDays, setCurrentDay, currentDay}){
-    console.log("rendered Calendar",workoutDays);
     if(workoutDays == null){
         return 'Loading...';
     }
@@ -15,7 +14,6 @@ export function Calendar({styles, workoutDays, setCurrentDay, currentDay}){
     return(
         <div className={styles.calendar}>
             {workoutDays.map((day,index)=>{
-                console.log(day);
                 const text = (day.day) ? day.day : day;
                 return (
                     <button 

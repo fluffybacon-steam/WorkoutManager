@@ -129,8 +129,8 @@ export async function formateGoogleSheet(sheet: any) {
   //Workout days are defined in .getCell(59,0) to .getCell(637,0) 
   var workoutDays = [];
   let currentDay = undefined;
-  for (let i = 59; i <= 101; i++) {
-  // for (let i = 59; i <= 637; i++) {
+  // for (let i = 59; i <= 101; i++) {
+  for (let i = 59; i <= 637; i++) {
     const cellString = sheet.getCell(i, 0).stringValue;
     const adjacentCell = sheet.getCell(i, 1).stringValue;
     console.log('\n');

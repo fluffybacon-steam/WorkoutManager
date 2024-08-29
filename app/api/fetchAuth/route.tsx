@@ -5,7 +5,6 @@ import { cookies } from 'next/headers';
 import { redirect } from "next/navigation";
 
 
-const CREDENTIALS = require('../oauth2.keys.json');
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
 ];
@@ -37,6 +36,7 @@ async function authorize(client: typeof OAuth2Client) {
   }
 
 export async function GET() {
+  //Fetch auth url
   const client = new OAuth2Client(
       client_id, client_secret, redirect_uri
   );
@@ -49,11 +49,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  //Validate saved credentials
   const body = await req.json(); // Parse the body as JSON
   const {savedCredentialsStr} = body;
-  
+  console.log('fetchAuth POST',body,savedCredentialsStr);
   const credentials = JSON.parse(savedCredentialsStr);
-  console.log('savedCredentialsStr',savedCredentialsStr,credentials);
+  console.log('credentials',credentials);
   
   if(credentials){
       const client = new OAuth2Client(

@@ -11,6 +11,7 @@ import styles from './page.module.scss';
 export default function Home() {
     const router = useRouter();
     const [userSheetUrl, setUserSheetUrl] = useState<string>('');
+    const [sheetData, setSheetData] = useState<string>('');
 
     const fetchAuth = async () => {
       console.log('fetchAuth');
@@ -81,9 +82,13 @@ export default function Home() {
 
     useEffect(()=>{
       const sheetUrl = window.localStorage.getItem('sheetUrl');
+      const sheetDataJson = window.localStorage.getItem('sheetData');
       console.log(sheetUrl);
       if(sheetUrl){
         setUserSheetUrl(sheetUrl);
+      }
+      if(sheetDataJson){
+        setSheetData(sheetDataJson);
       }
     },[])
 
@@ -102,8 +107,8 @@ export default function Home() {
                 onChange={(e) => setUserSheetUrl(e.target.value)}
                 placeholder="Enter Google Sheets URL"
             />
-            <button disabled={!window.localStorage.getItem("sheetData")} onClick={()=>{router.push('/planner');}}>Load from memory</button>
-            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load Workout (Resync)</button>
+            <button disabled={(sheetData == '')} onClick={()=>{router.push('/planner');}}>Load from memory</button>
+            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load Workout</button>
             <button onClick={clearCache}>Clear cached data</button>
         </div>
     );
