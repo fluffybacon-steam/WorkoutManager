@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const client = new OAuth2Client(
         client_id, client_secret, redirect_uri
     );
-    await client.setCredentials(credentials.credentials);
+    await client.setCredentials(credentials);
     console.log("set creds...client",client);
     // let sheetUrl = '';
       

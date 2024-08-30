@@ -1,7 +1,8 @@
 'use client'
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export function Calendar({styles, workoutDays, setCurrentDay, currentDay}){
+    const calRef = useRef(null)
     if(workoutDays == null){
         return 'Loading...';
     }
@@ -12,7 +13,7 @@ export function Calendar({styles, workoutDays, setCurrentDay, currentDay}){
     }
 
     return(
-        <div className={styles.calendar}>
+        <div className={styles.calendar} ref={calRef}>
             {workoutDays.map((day,index)=>{
                 const text = (day.day) ? day.day : day;
                 return (

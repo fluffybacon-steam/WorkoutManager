@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       await client.setCredentials(returnCreds);
       if(client.isTokenExpiring()){
         returnCreds = await client.refreshAccessToken();
+        returnCreds = returnCreds.credentials;
       }
       return NextResponse.json({'credentials': returnCreds},{status:200, statusText: "Restored auth from saved credentials"});
   } else {

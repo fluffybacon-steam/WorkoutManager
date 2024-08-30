@@ -36,10 +36,8 @@ class Workout {
   private isComplete(sets: any[] | undefined){
     if (!sets || sets.length === 0) return;
     for (const value of sets) {
-      console.log(value);
         if (value !== null) {
           this.complete = true;
-          console.log("true",value);
           return
         }
     }
@@ -64,8 +62,6 @@ class Workout {
       notes  : data.notes,
     };
     if(this.complete == false){
-      console.log(this.day);
-      console.log(exercise.recordedSets);
       this.isComplete(exercise.recordedSets);
     }
       //console.log("exercise object",exercise);
@@ -76,18 +72,24 @@ class Workout {
 class WeakPoint {
   point: string;
   exercises: any[];
+  info: any[];
 
   constructor(point: string){
     this.point = point;
     this.exercises = [];
+    this.info = [];
   }
 
-  public addExercise(cellValue: string){
+  public addContent(cellValue: string){
     if(cellValue == undefined || cellValue == ''){
       return
-    } else {
+    } else if(cellValue.includes('1.') || cellValue.includes('2.') || cellValue.includes('3.')) {
+      //Exercise
       const formatCellValue = cellValue.replace('1. ', '').replace('2. ', '').replace('3. ', '').trim();
       this.exercises.push(formatCellValue);
+    } else {
+      //info
+      this.info.push(cellValue);
     }
   }
 
@@ -133,15 +135,10 @@ export async function formateGoogleSheet(sheet: any) {
   for (let i = 59; i <= 637; i++) {
     const cellString = sheet.getCell(i, 0).stringValue;
     const adjacentCell = sheet.getCell(i, 1).stringValue;
-    console.log('\n');
-    console.log('cellString:',cellString);
-    console.log('adjacentCell:',adjacentCell);
     if((cellString == undefined || cellString == '')){
-      console.log("IF:blank cell");
       //Blank cell.
       if(currentDay != undefined && (adjacentCell != undefined || adjacentCell != '' )){
         //Exercise, add to current day
-        console.log('     during current day');
         currentDay.addExercise({
           primary: sheet.getCell(i, 1).stringValue || sheet.getCell(i, 1).formattedValue,
           sub1: sheet.getCell(i, 13).stringValue || sheet.getCell(i, 13).formattedValue,
@@ -166,11 +163,9 @@ export async function formateGoogleSheet(sheet: any) {
       }
 
     } else {
-      console.log("ELSE:cell has text");
       //Cell has some text
       if(cellString.toLowerCase().includes('week') || cellString.toLowerCase().includes('rest day')){
         //Rest Day or Week header
-        console.log('      week/rest, end current day & add rest day');
         if(currentDay){
           workoutDays.push(currentDay);
           currentDay = undefined;
@@ -180,7 +175,6 @@ export async function formateGoogleSheet(sheet: any) {
         }
       } else if (adjacentCell != undefined || adjacentCell != '' ){
         //New day
-        console.log('     New day, end current day');
         if(currentDay){
           workoutDays.push(currentDay);
         }
@@ -215,18 +209,31 @@ export async function formateGoogleSheet(sheet: any) {
     let currentPoint = undefined;
     for (let i = 26; i <= 54; i++) {
         const cellString = sheet.getCell(i, 4).stringValue;
-        if((cellString == undefined || cellString == '') && currentPoint != undefined){
-          currentPoint.addExercise(sheet.getCell(i, 5).stringValue);
-          currentPoint.addExercise(sheet.getCell(i, 6).stringValue);
-        } else {
+        console.log('cellstring', cellString,sheet.getCell(i, 5).stringValue,sheet.getCell(i, 6).stringValue);
+        if((cellString == undefined || cellString == '')){
+          //Cell is blank
           if(currentPoint){
+            //Add exercises 1 and 2/info
+            currentPoint.addContent(sheet.getCell(i, 5).stringValue);
+            currentPoint.addContent(sheet.getCell(i, 6).stringValue);
+          } else {
+            //do nothing
+          }
+        } else {
+          //Cell has value
+          if(currentPoint){
+            //End current point
             currentPoint.addVideos(videoMap);
             weakPoints.push(currentPoint);
           }
+          //Begin new point
           currentPoint = new WeakPoint(cellString);
+          currentPoint.addContent(sheet.getCell(i, 5).stringValue);
+          currentPoint.addContent(sheet.getCell(i, 6).stringValue);
         }
       }
     }
+    console.log(weakPoints);
     // console.log('videoMap3',videoMap);
     //warmupsTable
     let warmUps = [];

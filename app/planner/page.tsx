@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {Warmups} from '../components/Warmups';
 import { Calendar } from '../components/Calendar';
@@ -11,6 +11,7 @@ import axios from 'axios';
 interface WeakPoint {
     point: string;
     exercises: Array<string | [string, string]>;
+    info: Array<string>;
 }
 
 interface Workout {
@@ -28,9 +29,10 @@ interface sheetData {
 export default function Planner(){
     console.log("rendered Planner");
     const router = useRouter();
-    const [workoutDays, setWorkoutDays] = useState<Array<Workout> | null>(null);
+    const [workoutDays, setWorkoutDays] = useState<Array<Workout | String> | null>(null);
     const [warmUps, setWarmUps] = useState<Object | null>(null);
     const [weakPoints, setWeakPoints] = useState<Object | null>(null);
+    const [weakPointSelection, setWeakPointSelection] = useState<Array<string> | null>(null);
     
     const [currentDay, setCurrentDay] = useState<Workout | null>(null);
     const [showWarmups, setShowWarmups] = useState<Boolean>(false);
@@ -74,10 +76,70 @@ export default function Planner(){
         }
     },[currentDay])
 
+
+    //Save weakpoint exercises to state variables
+    //NEED to save to sheet and localStorage as well
+    useEffect(()=>{
+        console.log("WQEFFFFFFFFF",);
+        if(weakPointSelection && currentDay && workoutDays){
+            let tempCurrentDay = currentDay;
+            const exercises = tempCurrentDay.exercises;
+            if(exercises){
+                const updatedExercises = exercises.map(ex =>{
+                    if (ex.primary.toLowerCase().includes("weak point") && ex.sub1 === ex.sub2) {
+                        console.log('old',ex.primary);
+                        const weakPoint = weakPointSelection.pop();
+                        if(Array.isArray(weakPoint)) {
+                            ex.primary = weakPoint[0];
+                            ex.primary_vid = weakPoint[1];
+                        } else {
+                            ex.primary = weakPoint;
+                        }
+                        ex.sub1 = null;
+                        ex.sub2 = null;
+                        console.log('added weakpoint to updateEx',ex.primary);
+                    }
+                    return ex;
+                });
+                console.log('updatedExercises',updatedExercises);
+                // tempWorkDays[index].exercises = updatedExercises;
+                tempCurrentDay.exercises = updatedExercises;
+                
+                let index = workoutDays.findIndex(day => currentDay === day);
+                let tempWorkDays = workoutDays;
+                tempWorkDays[index] = tempCurrentDay;
+                setCurrentDay(null);
+                setWorkoutDays(tempWorkDays);
+                // setCurrentDay(workoutDays[index]);
+            }
+            console.log('check work!',workoutDays,currentDay);
+            //tempWorkDays.forEach((day,index)=>{
+            //});
+        }
+    },[weakPointSelection])
+
+
+    useEffect(() => {
+        if (!currentDay && workoutDays?.length) {
+            for (const day of workoutDays) {
+                console.log('Looking for current day', day);
+                if(typeof day == "string"){
+                    continue;
+                }
+                if (!day.complete) {
+                    console.log("Found it!");
+                    setCurrentDay(day);
+                    break;  // Exit the loop once the current day is found and set
+                }
+            }
+        }
+    }, [workoutDays, currentDay, setCurrentDay]);
+    
+
     // Save exercise to state variables
     // ugly way to handle this but oh well. refactor later?
     // Add save to localStorage later
-    const saveExerciseLocally = (reps: Array<number>, lbs: Array<number>,rowI: number) => {
+    const saveExerciseLocally = (reps: Array<number>, lbs: Array<number>, rowI: number) => {
         if(!workoutDays){
             return
         }
@@ -159,16 +221,17 @@ export default function Planner(){
                 { currentDay ? 
                     currentDay?.exercises ? (
                     currentDay.exercises.map((exercise, index) => {
+                        console.log('Rendering <EX/>',exercise);
                         if(index == 0 && !currentDay.complete){
                             return (
                                 <>
                                     <Warmups warmUps={warmUps} showWarmups={showWarmups}/>
-                                    <Exercise saveExercise={saveExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin : index} exercise={exercise}/>
+                                    <Exercise saveExercise={saveExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
                                 </>
                             )
                         }
                         return (
-                            <Exercise saveExercise={saveExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin : index} exercise={exercise}/>
+                            <Exercise saveExercise={saveExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
                         )
                     })
                     ) : (
@@ -176,10 +239,10 @@ export default function Planner(){
                     ) : 'Pick a day'
                 } 
             </div>
-            {/* { currentDay ?
-                <WeakPoints currentDay={currentDay} weakPoints={weakPoints}/>
+            { currentDay ?
+                <WeakPoints styles={styles} currentDay={currentDay} weakPoints={weakPoints} setWeakPointSelection={setWeakPointSelection}/>
                 : null
-            } */}
+            }
         </div>
     )
 }
@@ -187,75 +250,133 @@ export default function Planner(){
 interface WeakPointsProps {
     currentDay: Workout;
     weakPoints: WeakPoint[];
+    styles: { [key: string]: string }; 
+    setWeakPointSelection: Dispatch<SetStateAction<any>>;
 }
 
-function WeakPoints({ currentDay, weakPoints }: WeakPointsProps) {
-    const [showDialog, setShowDialog] = useState(false);
-    const [selectedWeakPoint, setSelectedWeakPoint] = useState(null);
-    const [selectedExercises, setSelectedExercises] = useState([]);
+function WeakPoints({ styles, currentDay, weakPoints, setWeakPointSelection }: WeakPointsProps) {
+    const dialogRef = useRef(null);
+    const [selectedWeakPoint, setSelectedWeakPoint] = useState<WeakPoint | null>(null);
+    const [selectedExerciseList, setSelectedExerciseList] = useState<Array<string>>([]);
+    console.log('selectedWeakPoint',selectedWeakPoint);
+    console.log('selectedExerciseList',selectedExerciseList);
+    console.log(selectedExerciseList.includes('Cuffed Behind-The-Back Lateral Raise'));
 
-    useEffect(()=>{
-        if(currentDay && currentDay?.exercises){
-            currentDay.exercises.forEach((ex: any)=>{
-                if(ex.primary.toLowerCase().includes("weak point") && ex.sub1 == ex.sub2){
-                    setShowDialog(true);
-                    console.log(weakPoints);
+    useEffect(() => {
+        if (currentDay && currentDay?.exercises && dialogRef.current) {
+            currentDay.exercises.forEach((ex: any) => {
+                if (ex.primary.toLowerCase().includes("weak point") && ex.sub1 === ex.sub2) {
+                    dialogRef.current.show();
                 }
-            })
+            });
+        } 
+    }, [currentDay]);
+
+    const handleWeakPointChange = (selectedPoint: string) => {
+        if (!selectedPoint) {
+            return;
         }
-    },[currentDay])
+        const weakPoint = weakPoints.find(point => point.point === selectedPoint);
+        if(weakPoint){
+            setSelectedWeakPoint(weakPoint);
+        }
+    };
 
-    // const handleWeakPointChange = (event: Event) => {
-    //     const selectedPoint = event?.target?.value;
-    //     setSelectedWeakPoint(selectedPoint);
+    const handleExerciseSelect = (exercise: Array<string> | string) => {
+        console.log('handleExerciseSelect',exercise)
+        if(exercise == 'Pick one of the options above. Do not do all of them in one day!'){
+            return;
+        }
+        setSelectedExerciseList(prevList => {
+            if (prevList.includes(exercise)) {
+                // If already selected, remove the exercise
+                return prevList.filter(ex => ex !== exercise);
+            } else if (prevList.length < 2) {
+                // If less than 2 exercises are selected, add the new one
+                return [...prevList, exercise];
+            } else {
+                // Otherwise, do nothing (limit to 2 selections)
+                return prevList;
+            }
+        });
+    };
 
-    //     const weakPointData = weakPoints.find(point => point.point === selectedPoint);
-    //     if (weakPointData) {
-    //         setSelectedExercises(weakPointData?.exercises);
-    //     } else {
-    //         setSelectedExercises([]);
-    //     }
-    // };
+    const setWeakPointExercise = () => {
+        if (selectedExerciseList.length === 2) {
+            setWeakPointSelection(selectedExerciseList);
+            dialogRef.current.close();
+            // Handle the selected exercises (e.g., save to state or API)
+        } else {
+            alert("Please select exactly two exercises.");
+        }
+    };
 
-    if(!weakPoints || !currentDay){
-        return null
+    if (!weakPoints || !currentDay) {
+        return null;
     }
 
-
+    console.log(weakPoints)
     return (
-        <dialog open={showDialog}>
-            <h2>Select a Weak Point</h2>
-            <select 
-            // onChange={handleWeakPointChange} 
-            value={selectedWeakPoint || ''}>
-                <option value="" disabled>Select a weak point</option>
-                {weakPoints.map((weakPoint, index) => (
-                    <option key={index} value={weakPoint.point}>
-                        {weakPoint.point}
-                    </option>
-                ))}
-            </select>
+        <dialog className={styles.dialog} ref={dialogRef}>
+            <div className="wrapper">
+                <h2>Select a Weak Point</h2>
+                <select 
+                    onChange={(e) => handleWeakPointChange(e.target.value)} 
+                    defaultValue={''}
+                >
+                    <option value="" disabled>Select a weak point</option>
+                    {weakPoints.map((weakPoint, index) => {
+                        return (
+                            <option key={index} value={weakPoint.point}>
+                                {weakPoint.point}
+                            </option>
+                        )
+                    })}
+                </select>
 
-            {selectedWeakPoint && (
-                <>
-                    <h3>Exercises for {selectedWeakPoint}</h3>
-                    <ul>
-                        {selectedExercises.map((exercise, index) => (
-                            <li key={index}>
-                                {Array.isArray(exercise) ? (
-                                    <>
-                                        <a href={exercise[1]} target="_blank" rel="noopener noreferrer">
-                                            {exercise[0]}
-                                        </a>
-                                    </>
-                                ) : (
-                                    exercise
-                                )}
-                            </li>
+                {selectedWeakPoint && (
+                    <>
+                        <ol>
+                            {selectedWeakPoint.exercises.map((exercise, index) => {
+                                const exerciseName = Array.isArray(exercise) ? exercise[0] : exercise;
+                                const isSelected = selectedExerciseList.some(selectedExercise => {
+                                    const compare = Array.isArray(selectedExercise) ? selectedExercise[0] : selectedExercise;
+                                    return compare == exerciseName;
+                                });
+                                return (
+                                    <li 
+                                        key={index} 
+                                        onClick={() => handleExerciseSelect(exercise)}
+                                        style={{ 
+                                            cursor: 'pointer', 
+                                            textDecoration: isSelected ? 'underline' : 'none' 
+                                        }}
+                                    >
+                                        {Array.isArray(exercise) ? exercise[0] : exercise}
+                                    </li>
+                                )
+                            })}
+                        </ol>
+                        {selectedWeakPoint.info.map((info,index)=>(
+                            <p key={index} >{info}</p>
                         ))}
-                    </ul>
-                </>
-            )}
+
+                        <div className="exercise-list">
+                            {selectedExerciseList.map((ex,index)=>(
+                                <div key={index}>{ Array.isArray(ex) ? ex[0] : ex}</div>
+                            ))}
+                        </div>
+
+                        <button 
+                            onClick={setWeakPointExercise} 
+                            disabled={selectedExerciseList.length !== 2}
+                            >
+                            Confirm Selection
+                        </button>
+                    </>
+                )}
+            </div>
         </dialog>
-    )
+    );
 }
+

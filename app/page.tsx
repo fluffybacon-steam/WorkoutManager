@@ -36,7 +36,9 @@ export default function Home() {
             });
 
         if(credentials){
+          console.log('credentials',credentials);
           window.localStorage.setItem("ga_credentials",JSON.stringify(credentials));
+          console.log('credentials',JSON.stringify(credentials));
           //Grab sheet using creds, then redirect to /planner
           const sheetData = await axios.get('/api/fetchSheet',{
               params: {
@@ -107,8 +109,8 @@ export default function Home() {
                 onChange={(e) => setUserSheetUrl(e.target.value)}
                 placeholder="Enter Google Sheets URL"
             />
-            <button disabled={(sheetData == '')} onClick={()=>{router.push('/planner');}}>Load from memory</button>
-            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load Workout</button>
+            <button disabled={(sheetData == '')} onClick={()=>{router.push('/planner');}}>Load workout from local memory</button>
+            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load workout from sheet</button>
             <button onClick={clearCache}>Clear cached data</button>
         </div>
     );

@@ -27,7 +27,9 @@ function AuthorizeComponent() {
         console.log('post setTotken',credentials);
         if(credentials){
             //Save credentials
+            console.log('credentials',credentials);
             window.localStorage.setItem("ga_credentials",JSON.stringify(credentials));
+            console.log('credentials',JSON.stringify(credentials));
             //Grab sheet using creds, then redirect to /planner
             const sheetUrl = window.localStorage.getItem("sheetUrl");
             if(!sheetUrl){

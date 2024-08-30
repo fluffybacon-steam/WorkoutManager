@@ -32,5 +32,57 @@
 }
 
 .exercises{
-    padding:clamp(15px,5vw, 50px);
+    padding:clamp(5px,5vw, 50px);
+}
+
+.dialog{
+    display: none;
+    position: fixed;
+    inset:0 0 0 0;
+    background:rgba(128, 128, 128, 0.473);
+    width:100%;
+    height:100%;
+    font-size: 0.8rem;
+    &[open]{
+        display:grid;
+    }
+    :global{
+        .wrapper{
+            padding:clamp(10px,5vw,50px);
+            border:5px double white;
+            margin:auto;
+            background:black;
+            max-width:500px;
+            width:100%;
+            h2{
+                font-size:1.5em;
+            }
+            select{
+                font-size:1.25em;
+                margin:0.5em 0;
+            }
+            p{
+                font-size:1em;
+            }
+            ol{
+                margin-block:0.5em;
+            }
+            li{
+                font-size:1.2em;
+            }
+            .exercise-list{
+                display: flex;
+                margin-block:1em 0.5em;
+                div{
+                    flex:1 1 0%;
+                    padding:5px;
+                    border:1px solid white;
+                }
+            }
+            button{
+                width:100%;
+                font-size:1em;
+            }
+        }
+    }
 }

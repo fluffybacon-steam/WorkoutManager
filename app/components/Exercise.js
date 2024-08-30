@@ -3,7 +3,6 @@ import { useEffect, useState, useRef} from 'react';
 import styles from './exercise.module.scss';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import { VidIcon } from './VidIcon';
-import {DragHandle} from './DragHandle';
 import gsap from 'gsap';
 import { useGSAP } from "@gsap/react";
 import {Draggable} from "gsap/all";
@@ -13,21 +12,22 @@ gsap.registerPlugin(Draggable);
 export function Exercise({saveExercise, exercise}){
     const cardRef = useRef();
     const { contextSafe } = useGSAP({ scope: cardRef });
+    console.log('exercise',exercise);
 
     useEffect(()=>{
         if(!cardRef.current){
             return
         }
-        const offset = `-${cardRef.current.offsetWidth/2}`;
-        //  const offset = -100;
+        const offset = -cardRef.current.offsetWidth;
         Draggable.create(cardRef.current, {
             type: "left",
             bounds: {minX: offset, maxX: 10},
             dragResistance: 0.1,
-            onDragEnd: function () {
+            trigger:  cardRef.current.querySelector('.drag-handle'),
+            onDrag: function(e){
                 const leftPos = parseFloat(cardRef.current.style.left);
-                console.log("drag ended",cardRef.current,leftPos, leftPos, 0.75*offset);
-                if(leftPos <= 0.75*offset){
+                console.log(leftPos,0.9*offset,offset);
+                if(leftPos <= 0.9*offset){
                     let animation = gsap.timeline();
                     animation.to(cardRef.current,{
                         opacity:0,
@@ -36,6 +36,31 @@ export function Exercise({saveExercise, exercise}){
                     })
                     animation.to(cardRef.current,{
                         height: '0px',
+                        zIndex: '-100',
+                        duration:0.5
+                    }, '<=0.25');
+                    // animation.eventCallback('onComplete', () => {
+                    //     if (cardRef.current) {
+                    //         cardRef.current.style.display = 'none';
+                    //     }
+                    // });
+                    saveExercise(reps,lbs,exercise.rowOrigin);
+                    animation.play();
+                }   
+            },
+            onDragEnd: function () {
+                const leftPos = parseFloat(cardRef.current.style.left);
+                console.log("drag ended",cardRef.current,leftPos, leftPos, 0.75*offset);
+                if(leftPos <= 0.90*offset){
+                    let animation = gsap.timeline();
+                    animation.to(cardRef.current,{
+                        opacity:0,
+                        left:(offset*3),
+                        duration:0.8
+                    })
+                    animation.to(cardRef.current,{
+                        height: '0px',
+                        zIndex: '-100',
                         duration:0.5
                     }, '<=0.25');
                     // animation.eventCallback('onComplete', () => {
@@ -56,8 +81,17 @@ export function Exercise({saveExercise, exercise}){
     },[cardRef])
 
 
+    useEffect(()=>{
+        console.log("useEF exercise",exercise);
+    },[exercise])
+    
+
+
     const restMinMax = parseTimeRange(exercise.rest);
-    const defaultDuration = restMinMax.min/2 + restMinMax.max/2;
+    let defaultDuration;
+    if(restMinMax){
+        defaultDuration = restMinMax.min/2 + restMinMax.max/2;
+    }
     
     const [key, resetTimer] = useState(0);
     const [timerState, setTimerState] = useState(false);
@@ -74,47 +108,49 @@ export function Exercise({saveExercise, exercise}){
 
     return(
         <div className={styles.card} ref={cardRef}>
-            <DragHandle />
-            <Movements exercise={exercise} />
-            <div className="rest-time">
-                {exercise.rest}
-                {restMinMax && (
-                    <>
-                    <input 
-                        onChange={(e) => setTimerDuration(e.target.value)} 
-                        type="range" 
-                        id="timer" name="timer" 
-                        min={restMinMax.min} max={restMinMax.max} 
-                        step={0.1}
-                    ></input>
-                    <button onClick={()=>{ setTimerState(true) }}>Start Timer</button>
-                    </>
-                )}
+            <div className="wrapper">
+                <Movements exercise={exercise} />
+                <div className="rest-time">
+                    <span>{(timerDuration) ? convertTime(timerDuration,true) : exercise.rest}</span>
+                    {restMinMax && (
+                        <>
+                        <input 
+                            onChange={(e) => setTimerDuration(e.target.value)} 
+                            type="range" 
+                            id="timer" name="timer" 
+                            min={restMinMax.min} max={restMinMax.max} 
+                            step={0.1}
+                            ></input>
+                        <button onClick={()=>{ setTimerState(true) }}>Start Timer</button>
+                        </>
+                    )}
+                </div>
+                <div className="timer-wrapper" hidden={!timerState}>
+                    <CountdownCircleTimer
+                        key={key}
+                        isPlaying={timerState}
+                        duration={timerDuration ? timerDuration : defaultDuration}
+                        colors={'#228ded'}
+                    >
+                        {renderTime}
+                    </CountdownCircleTimer>
+                    <button onClick={()=>{
+                        setTimerState(false);
+                        resetTimer(prevKey => prevKey + 1);
+                    }}>X</button>
+                </div>
+                <div className="notes">
+                    <b>Notes:</b> {exercise.notes}
+                </div>
+                <Table 
+                    exercise={exercise}
+                    reps={reps}
+                    setReps={setReps}
+                    lbs={lbs}
+                    setLbs={setLbs} 
+                />
             </div>
-            <div className="timer-wrapper" hidden={!timerState}>
-                <CountdownCircleTimer
-                    key={key}
-                    isPlaying={timerState}
-                    duration={timerDuration ? timerDuration : defaultDuration}
-                    colors={'#228ded'}
-                >
-                    {renderTime}
-                </CountdownCircleTimer>
-                <button onClick={()=>{
-                    setTimerState(false);
-                    resetTimer(prevKey => prevKey + 1);
-                }}>X</button>
-            </div>
-            <div className="notes">
-                <b>Notes:</b> {exercise.notes}
-            </div>
-            <Table 
-                exercise={exercise}
-                reps={reps}
-                setReps={setReps}
-                lbs={lbs}
-                setLbs={setLbs} 
-            />
+            <div className="drag-handle"></div>
         </div>
     )
 }
@@ -243,9 +279,12 @@ const Movements = ({exercise}) => {
     const movements = movement_keys.map((prop) =>{
                     const movement = exercise?.[prop]; // Dynamically access the property
                     const video = exercise?.[prop + '_vid']; // Access another property like movements
-                    return (movement && video) ? [movement, video] : false;
+                    let result = (movement && video) ? [movement, video] : [movement, null];
+                    result = (result[0]) ? result : false;
+                    return result
                 })
                 .filter(Boolean);
+    console.log("<Movements />",movements);
     if(movements.length == 0){
         return ("coming soon")
     }
@@ -256,10 +295,12 @@ const Movements = ({exercise}) => {
                 <div key={index} className={'move'}  data-selected={selectedMove == index ? true : false}>
                     <h3 >
                         {movement[0]}
+                    </h3>
+                    {movement[1] && (
                         <a className={'link'} target="_blank" rel="nofollow" href={movement[1]}>
                             <VidIcon />
                         </a>
-                    </h3>
+                    )}
                 </div>
             ))}
             <div className={'selectors'}>
@@ -281,15 +322,13 @@ function parseTimeRange(timeStr) {
 }
 
 const renderTime = ({ remainingTime }) => {
-    if (remainingTime === 0) {
-        return <div className="timer">Too late...</div>;
-    }
 
     // Calculate minutes and seconds
     const {minutes, seconds } = convertTime(remainingTime);
 
     return (
         <div className="count">
+            <div hidden={remainingTime > 0} className="timer">Get back to lifting!</div>
             <div className="value">
                 {minutes > 0 ? `${minutes} min ` : ""}{seconds} sec
             </div>
@@ -297,9 +336,12 @@ const renderTime = ({ remainingTime }) => {
     );
   };
 
-const convertTime = (rawSecs) => {
+const convertTime = (rawSecs, stringFlag = false) => {
     const minutes = Math.floor(rawSecs / 60);
-    const seconds = rawSecs % 60;
+    const seconds = Math.round(rawSecs % 60);
+    if(stringFlag){
+        return `${minutes}:${seconds < 10 ? '0' + seconds : seconds} mins`
+    }
     return { minutes, seconds}
 }
 

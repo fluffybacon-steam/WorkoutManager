@@ -63,22 +63,20 @@ button[disabled]{
   filter:grayscale(1)
 }
 
-dialog{
-  position: fixed;
-  background:black;
-  inset:0 0 0 0;
-  margin:auto;
+ol,ul{
+  margin-left:1.2em;
 }
 
 .popup{
   background: green;
+  border:2px solid white;
   width: fit-content;
   height: 50px;
   padding: 10px;
   margin: auto;
   position: fixed;
   inset: 0 0 0 0;
-  z-index: 10;
+  z-index: 1000;
   top: calc(100% - 100px);
   transition: display 1s allow-discrete, overlay 1s allow-discrete;
   animation: closePopup 1s forwards;

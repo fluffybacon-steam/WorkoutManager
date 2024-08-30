@@ -1,14 +1,75 @@
-import { useState, useEffect} from 'react';
+import { useRef, useEffect} from 'react';
 import { VidIcon } from './VidIcon.js';
-import styles from './warmups.module.scss'
+import styles from './warmups.module.scss';
+import gsap from 'gsap';
+import { useGSAP } from "@gsap/react";
+import {Draggable} from "gsap/all";
+gsap.registerPlugin(useGSAP);
+gsap.registerPlugin(Draggable);
 
 export function Warmups({warmUps, showWarmups}) {
+    const cardRef = useRef(null);
+    const { contextSafe } = useGSAP({ scope: cardRef });
     if(!warmUps){
         return null;
     }
 
+    useEffect(()=>{
+        if(!cardRef.current){
+            return
+        }
+        const offset = -cardRef.current.offsetWidth;
+        Draggable.create(cardRef.current, {
+            type: "left",
+            bounds: {minX: offset, maxX: 10},
+            dragResistance: 0.1,
+            trigger:  cardRef.current.querySelector('.drag-handle'),
+            onDrag: function(e){
+                const leftPos = parseFloat(cardRef.current.style.left);
+                console.log(leftPos,0.9*offset,offset);
+                if(leftPos <= 0.9*offset){
+                    let animation = gsap.timeline();
+                    animation.to(cardRef.current,{
+                        opacity:0,
+                        left:(offset*3),
+                        duration:0.8
+                    })
+                    animation.to(cardRef.current,{
+                        height: '0px',
+                        zIndex: '-100',
+                        duration:0.5
+                    }, '<=0.25');
+                    animation.play();
+                }   
+            },
+            onDragEnd: function () {
+                const leftPos = parseFloat(cardRef.current.style.left);
+                console.log("drag ended",cardRef.current,leftPos, leftPos, 0.75*offset);
+                if(leftPos <= 0.90*offset){
+                    let animation = gsap.timeline();
+                    animation.to(cardRef.current,{
+                        opacity:0,
+                        left:(offset*3),
+                        duration:0.8
+                    })
+                    animation.to(cardRef.current,{
+                        height: '0px',
+                        zIndex: '-100',
+                        duration:0.5
+                    }, '<=0.25');
+                    animation.play();
+                } else {
+                    gsap.to(cardRef.current,{
+                        left:0
+                    })
+                }
+            },
+        });
+
+    },[cardRef])
+
     return(
-        <div className={showWarmups ? `${styles.wrapper} ${styles.visible}` : `${styles.wrapper}` }>
+        <div className={showWarmups ? `${styles.wrapper} ${styles.visible}` : `${styles.wrapper}` } ref={cardRef}>
             <table>
                 <thead>
                 <tr>
@@ -36,6 +97,7 @@ export function Warmups({warmUps, showWarmups}) {
                     })} 
                 </tbody>
             </table> 
+            <div className="drag-handle"></div>
         </div>
     )
 }
