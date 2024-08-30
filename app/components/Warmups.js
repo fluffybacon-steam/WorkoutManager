@@ -10,9 +10,6 @@ gsap.registerPlugin(Draggable);
 export function Warmups({warmUps, showWarmups}) {
     const cardRef = useRef(null);
     const { contextSafe } = useGSAP({ scope: cardRef });
-    if(!warmUps){
-        return null;
-    }
 
     useEffect(()=>{
         if(!cardRef.current){
@@ -67,6 +64,10 @@ export function Warmups({warmUps, showWarmups}) {
         });
 
     },[cardRef])
+
+    if(!warmUps){
+        return null;
+    }
 
     return(
         <div className={showWarmups ? `${styles.wrapper} ${styles.visible}` : `${styles.wrapper}` } ref={cardRef}>
