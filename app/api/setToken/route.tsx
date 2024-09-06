@@ -8,25 +8,23 @@ const client_id = process.env.GOOGLE_CLIENT_ID;
 const client_secret = process.env.GOOGLE_CLIENT_SECRET;
 
 async function setToken(code: string,client: typeof OAuth2Client) {
-  console.log("setToken");
   const r = await client.getToken(code);
   await client.setCredentials(r.tokens);
-  // const info = await client.getTokenInfo(client.credentials.access_token);
-  console.log('credentials',client.credentials)
-  return client.credentials;
-  // return JSON.stringify({
-  //   type: 'authorized_user',
-  // client_id: client_id,
-  // client_secret: client_secret,
-  // client_email: info.email,
-  // tokens: tokens,
-  //   credentials: client.credentials
-  // });
+  if(client.credentials?.refresh_token){
+    cookies().set('refreshToken',client.credentials.refresh_token,{
+      httpOnly: true, 
+      secure: true,  
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 
+    });
+  } else {
+    console.log("Error: could not set refresh token cookie")
+  }
+  return {access_token: client.credentials.access_token};
 }
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
-    console.log('setToken params',searchParams);
     const state = searchParams.get('state');
     const code = searchParams.get('code');
     

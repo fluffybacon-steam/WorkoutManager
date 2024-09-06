@@ -7,7 +7,6 @@ export default function Navbar() {
     const router = useRouter();
 
     const syncSheetData = async () =>{
-        console.log('syncSheetData',window);
         if(typeof window == 'undefined'){
             return;
         }
@@ -17,7 +16,6 @@ export default function Navbar() {
         const sheetUrl = window.localStorage.getItem("sheetUrl");
         let popup_message = "Error: No OAuth2 credentials or Sheet found";
         if(savedCredentialsStr && sheetUrl){
-            console.log('savedCred before fetchAuth', savedCredentialsStr);
             const credentials = await axios.post(`/api/fetchAuth`, 
                 { savedCredentialsStr}
                 ).then((res)=>{
@@ -35,7 +33,6 @@ export default function Navbar() {
                         sheetDataStr: sheetDataStr,
                         sheetUrl: sheetUrl,
                     }).then((res)=>{
-                        console.log(res);
                         return "Successfully saved local data to Google Spreadsheet";
                     }).catch((err)=>{
                         console.log(err);

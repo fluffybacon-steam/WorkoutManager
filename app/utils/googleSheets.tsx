@@ -211,7 +211,6 @@ export async function formateGoogleSheet(sheet: any) {
   let currentPoint = undefined;
   for (let i = 26; i <= 54; i++) {
       const cellString = sheet.getCell(i, 4).stringValue;
-      console.log('cellstring', cellString,sheet.getCell(i, 5).stringValue,sheet.getCell(i, 6).stringValue);
       if((cellString == undefined || cellString == '')){
         //Cell is blank
         if(currentPoint){
@@ -234,7 +233,6 @@ export async function formateGoogleSheet(sheet: any) {
         currentPoint.addContent(sheet.getCell(i, 6).stringValue);
       }
   }
-  console.log(weakPoints);
   // console.log('videoMap3',videoMap);
   //warmupsTable
   let warmUps = [];

@@ -25,12 +25,11 @@ export async function POST(req: NextRequest) {
     const client = new OAuth2Client(
         client_id, client_secret, redirect_uri
     );
-    await client.setCredentials({access_token: credentials.access_token});
+    await client.setCredentials(credentials);
     // await client.setCredentials(credentials);
     // let sheetUrl = '';
       
     let sheetId = (sheetUrl) ? sheetUrl.match(/(?<=\/d\/)[\w-]+/) : null;
-    console.log(sheetId,sheetId.length);
     if(sheetId === null || sheetId.length != 1){
         return NextResponse.json({ error: 'Invalid sheet URL' }, { status: 400 });;
     }
@@ -50,7 +49,6 @@ export async function POST(req: NextRequest) {
                     if(exercise.sub1 == null && exercise.sub2 == null){
                         //Check for weakpoint
                         const exer_cell = sheet.getCell(exercise.rowOrigin, 1);
-                        console.log('weak',exercise,exer_cell.value);
                         exer_cell.value = exercise.primary;
                     }
                     for (let i = 0; i <= exercise.recordedSets.length - 1; i++) {

@@ -64,9 +64,18 @@ export async function POST(req: NextRequest) {
       let returnCreds = credentials;
       await client.setCredentials(returnCreds);
       if(client.isTokenExpiring()){
+        const refreshToken = cookies().get('refrestToken')?.value;
+        await client.setCredentials(refreshToken);
         returnCreds = await client.refreshAccessToken();
         returnCreds = returnCreds.credentials;
+        cookies().set('refreshToken',returnCreds.refresh_token,{
+          httpOnly: true, 
+          secure: true,  
+          sameSite: 'strict',
+          maxAge: 7 * 24 * 60 * 60 * 1000 
+        });
       }
+      returnCreds = {access_token: returnCreds.access_token}
       return NextResponse.json({'credentials': returnCreds},{status:200, statusText: "Restored auth from saved credentials"});
   } else {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 500 });

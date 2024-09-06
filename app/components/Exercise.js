@@ -219,7 +219,7 @@ const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
                                 type="number" 
                                 min="0" 
                                 max="100" 
-                                defaultValue={(savedReps.length == 2) ? savedReps[1] : 0}
+                                defaultValue={(savedReps.length == 2) ? savedReps[1] : null}
                                 onChange={(e)=>handleInput(i,e.target.value,'lbs')}
                             />
                         </label>

@@ -28,7 +28,9 @@ export default function RootLayout({
         </header>
         {children}
         <footer>
-          {/* online video by Mira iconic from <a href="https://thenounproject.com/browse/icons/term/online-video/" target="_blank" title="online video Icons">Noun Project</a> (CC BY 3.0) */}
+          <b>Legal disclaimer:</b> I am not associated with Jeff Nippard and receive no financial gain from this app or the purchase of Nippard's program.
+          <br/><br/>
+          Developed by <a href='https://github.com/fluffybacon-steam'>fluffybacon</a> 2024
         </footer>
       </body>
     </html>

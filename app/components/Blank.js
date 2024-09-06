@@ -27,6 +27,26 @@ const svg_styles = {
     minHeight: '35px'
 }
 
+const sayings = [
+    "Drag yourself into bed, you earned it!",
+    "Lifting is easy, resting is hard. Get into bed",
+    "Got to rest to grow, or you'll have nothing to show",
+    "Lay down, dream big, and recharge!",
+    "Get your @$$ to bed",
+    "Surrender to sleep, you’ve earned it.",
+    "Wrap yourself in comfort and rest those muscles",
+    "Rest now, build body later",
+    "Your bed is calling, don’t be rude.",
+    "Are you getting smaller? Guess you aren't resting enough.",
+    "The weights can wait... wait.",
+    "Rest. recharge. reborn.",
+    "Let sleep take over, Sweet Prince...ess",
+    "Slide under those covers now",
+    "The only thing you're curling today are pillows",
+    "Lay down and pretend your sleeping."
+];
+
+
 
 // Register the Draggable plugin
 gsap.registerPlugin(Draggable);
@@ -40,6 +60,8 @@ export function Blank({currentDay,updateWorkoutDay,setCurrentDay}){
         updateWorkoutDay(restDay);
         // setCurrentDay(null);
     }
+
+    const wordsOfEncouragement = sayings[Math.round(Math.random() * sayings.length)]
 
     return(
         <div style={styles} ref={boundaryRef}>
@@ -59,7 +81,7 @@ export function Blank({currentDay,updateWorkoutDay,setCurrentDay}){
                 </svg>
             )}
             {currentDay.complete == false && (
-                <p style={{fontSize: "0.5em"}}>Move yourself to bed, you earned it!</p>
+                <p style={{fontSize: "0.5em"}}>{wordsOfEncouragement}</p>
             )}
         </div>
     )
@@ -85,12 +107,9 @@ function PutToBed({PutToBed,boundaryRef}){
                 dragItemBounds.top < dropZoneBounds.bottom &&
                 dragItemBounds.bottom > dropZoneBounds.top
             ) {
-                console.log("Dropped inside the drop zone!");
                 PutToBed();
                 // Optionally, you can snap the SVG to the drop zone
-            } else {
-                console.log("Not inside the drop zone");
-            }
+            } 
         },
         });
     }, []);

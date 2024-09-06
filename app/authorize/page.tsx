@@ -12,7 +12,6 @@ function AuthorizeComponent() {
     const [statusText,setText] = useState('Loading authentication...');
 
     const fetchAuth = async (code: string,state: string) => {
-        console.log('fetchAuth', code);
         const credentials = await axios.get(`/api/setToken`,{ 
             params: {
                 code: code,
@@ -24,12 +23,9 @@ function AuthorizeComponent() {
                 console.error('Failed to fetch Access token', err);
                 return false
             });
-        console.log('post setTotken',credentials);
         if(credentials){
             //Save credentials
-            console.log('credentials',credentials);
             window.localStorage.setItem("ga_credentials",JSON.stringify(credentials));
-            console.log('credentials',JSON.stringify(credentials));
             //Grab sheet using creds, then redirect to /planner
             const sheetUrl = window.localStorage.getItem("sheetUrl");
             if(!sheetUrl){
@@ -49,7 +45,6 @@ function AuthorizeComponent() {
                     console.log('Failed to fetch sheet',err);
                     return false;
                 })
-            console.log(sheetData);
             if(sheetData){
                 window.localStorage.setItem("sheetData",JSON.stringify(sheetData));
                 router.push('/planner');

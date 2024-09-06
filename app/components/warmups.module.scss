@@ -1,13 +1,17 @@
 .wrapper{
     --bkg: var(--cardBackground);
     --border-radius:10px;
-    --dragWidth: 1em;
-    border:white 1px solid;
+    --dragWidth: clamp(25px,1em,50px);
+    --border-radius:10px;
+    --inputWidth: 100px;
+    --tableGap: 5px;
+    border:var(--cardBorderOuter) 5px solid;
+    border-right-color:var(--gradHandle);
     border-radius:var(--border-radius);
+    color:var(--cardFont);
     margin-bottom: 20px;
     gap:15px;
     display:grid;
-    flex-wrap: wrap;
     position: relative;
     background:var(--bkg);
     font-size: 0.7rem;
@@ -17,7 +21,7 @@
             grid-column:2/3;
             display:block;
             width:var(--dragWidth);
-            background-image: radial-gradient(circle, white 10%, transparent 10%);
+            background-image: radial-gradient(circle, var(--gradHandle) 30%, transparent 30%);
             background-size: 5px 5px;
             border-radius:0 var(--border-radius) var(--border-radius) 0;
         }
@@ -27,7 +31,7 @@
             font-size:1.5rem;
             padding:20px 0 20px 20px;
         }
-        td {border:1px solid white;}
+        td {border:1px solid var(--cardBorderInner);}
         th{
             font-size:0.75em;
             padding:5px;
@@ -51,7 +55,4 @@
             width: 100%;
         }
     }
-}
-.visible{
-    display: block;
 }

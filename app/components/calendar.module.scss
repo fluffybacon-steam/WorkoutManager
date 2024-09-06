@@ -21,6 +21,8 @@
             padding:25px;
             color:var(--calendarFont);
             background:var(--dayIncomplete);
+            font-weight:normal;
+            font-size:0.5em;
         }
         [data-complete=true]{
             background:var(--dayComplete);
@@ -29,6 +31,12 @@
             border-color: var(--dayCurrentDay);
             border-width: 10px;
             font-weight:bold;
+        }
+        h2{
+            margin:auto;
+            text-wrap: balance;
+            width:fit-content;
+            font-weight: inherit;
         }
     }
 }

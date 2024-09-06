@@ -16,7 +16,6 @@ export function Calendar({workoutDays, setCurrentDay, currentDay}){
     }
 
     const selectDay = (index,key) => {
-        console.log('selectDay',index,key);
         if(index !== key){
             alert("Something went very wrong");
         }
@@ -36,7 +35,9 @@ export function Calendar({workoutDays, setCurrentDay, currentDay}){
                         className={(day == currentDay) ? `day current` : `day`}
                         id={'workout_'+day.key}
                     >
-                        {text}
+                        <h2>
+                            {text}
+                        </h2>
                     </button>
                 )
             })}

@@ -29,24 +29,12 @@ async function getSheet(auth: typeof OAuth2Client, sheetUrl: string){
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
-  console.log('fetchSheet',searchParams);
   const validCredsStr = searchParams.get('credentials');
   const validCreds = (validCredsStr) ? JSON.parse(validCredsStr) : null;
 
   const sheetUrlStr = searchParams.get('sheetUrl');
   const sheetUrl = (sheetUrlStr) ? sheetUrlStr : null;
-  
-  // if(sheetUrl){
-  //   cookies().set('sheetUrl', sheetUrl, { 
-  //     // secure:true,
-  //     httpOnly: true,
-  //     path: '/',
-  //     maxAge: 4628000
-  //   })
-  // } else {
-  //   sheetUrl = cookies().get('sheetUrl')?.value ?? null;
-  // }
-  console.log("keep params",validCreds,sheetUrl)
+
   // Use saved credentials
   if(validCreds && sheetUrl){
     let client = new OAuth2Client(client_id, client_secret, redirect_uri);

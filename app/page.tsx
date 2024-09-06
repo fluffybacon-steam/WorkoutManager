@@ -9,24 +9,50 @@ import {CallBackProps, ACTIONS, EVENTS, STATUS, ORIGIN } from 'react-joyride';
 
 const steps = [
   {
-    target: 'body h1',
-    content: 'Welcome to my workout planner. Here you can load your spreadsheet program into a more user friendly UI',
+    title: "Welcome to Workout Planner",
+    target: 'body',
+    content: (
+      <>
+      <p style={{textWrap:'pretty'}}>Here you can load your favorite spreadsheet program into a user friendly UI.</p>
+      <br/>
+      <p style={{textWrap:'pretty'}}>This app was developed with <a style={{textDecoration:'underline'}}href='https://jeffnippard.com/' target='_blank'>Jeff Nippard's programs</a> in mind, 
+      but you can always download the source from GitHub and modify it for your own spreadsheet program.</p>
+      <br/>
+      <p>I am always looking to improve! Please leave any feedback you have <a style={{textDecoration:'underline'}} href='https://www.reddit.com/user/FluffyBacon_steam/'>here</a>.</p>
+      <br/>
+      <p><b>Legal disclaimer:</b> I am not associated with Jeff Nippard and receive no financial gain from the use of app nor the purchase of any Nippard's programs. This is fan/passion project.</p>
+      </>
+    ),
     disableBeacon: true,
-    placement: 'auto' as const,
+    placement: 'center' as const,
   },
   {
+    title:'Follow these instructions',
     target: 'body ol',
-    content: 'Before you can begin, you will need to upload your spreadsheet to your Google Drive. Follow these instructions',
+    content: (
+      <p style={{textWrap:'pretty'}}>Before you can begin, you will need to upload your spreadsheet to your Google Drive.</p>
+    ),
     placement: 'auto' as const,
   },
   {
     target: 'body input',
-    content: 'Enter the URL of your Google Spreadsheet here',
+    content: (
+      <p style={{textWrap:'pretty'}}>Enter the URL of your Google Spreadsheet here</p>
+    ),
     placement: 'auto' as const,
   },
   {
     target: 'body button:nth-child(7)',
-    content: 'Once you are sign-in, your workouts will be saved locally and be accessible from the Planner (no internet required).',
+    content: (
+      <p style={{textWrap:'pretty'}}>Click here to login to Google and retrieve the program sheet</p>
+    ),
+    placement: 'auto' as const,
+  },
+  {
+    target: 'body button:nth-child(6)',
+    content: (
+      <p style={{textWrap:'pretty'}}>After your first login, your program will be retained in memory and can be loaded from here (no internet required)</p>
+    ),
     placement: 'auto' as const,
   },
 ]
@@ -36,12 +62,11 @@ export default function Home() {
     const [userSheetUrl, setUserSheetUrl] = useState<string>('');
     const [sheetData, setSheetData] = useState<string>('');
 
-    const [firstTime, setFirstTime] = useState<boolean>(true);
+    const [firstTime, setFirstTime] = useState<boolean>(false);
     const [run, setRun] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
 
     const fetchAuth = async () => {
-      console.log('fetchAuth');
       isLoading(true);
       // const savedSheetUrl =  window.localStorage.getItem("sheetUrl");
 
@@ -54,7 +79,6 @@ export default function Home() {
       const savedCredentialsStr = window.localStorage.getItem("ga_credentials");
       if(savedCredentialsStr && savedCredentialsStr != 'undefined'){
         //Old credentials exist, use thoses
-        console.log('Use saved credentials to fetch',savedCredentialsStr);
         const credentials = await axios.post(`/api/fetchAuth`, {savedCredentialsStr}
             ).then((res)=>{
               return res.data.credentials;
@@ -64,9 +88,7 @@ export default function Home() {
             });
 
         if(credentials){
-          console.log('credentials',credentials);
           window.localStorage.setItem("ga_credentials",JSON.stringify(credentials));
-          console.log('credentials',JSON.stringify(credentials));
           //Grab sheet using creds, then redirect to /planner
           const sheetData = await axios.get('/api/fetchSheet',{
               params: {
@@ -89,7 +111,6 @@ export default function Home() {
 
       } else {
         // Get user consent
-        console.log('Fetch user consent');
 
         axios.get(`/api/fetchAuth`
           ).then((res)=>{
@@ -115,7 +136,6 @@ export default function Home() {
     useEffect(()=>{
       const sheetUrl = window.localStorage.getItem('sheetUrl');
       const sheetDataJson = window.localStorage.getItem('sheetData');
-      console.log(sheetUrl);
       if(sheetUrl){
         setUserSheetUrl(sheetUrl);
       }
@@ -124,10 +144,8 @@ export default function Home() {
       }
 
       const demo = window.localStorage.getItem('demoComplete');
-      if (demo) {
-        setFirstTime(false); // If demo is complete, firstTime should be false
-      } else {
-        setFirstTime(true); // If no demoComplete, set firstTime to true
+      if (demo != "1") {
+        setFirstTime(true); // If demo is complete, firstTime should be false
         setRun(true); // Start the tour
       }
     },[])

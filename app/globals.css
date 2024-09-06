@@ -33,15 +33,15 @@
     --calendarFont: white;
     --calendarBar: #03045E;
     --dayIncomplete: #0096C7;
-    --dayComplete:#023E8A;
+    --dayComplete:#14168b;
     --dayCurrentDay: white;
     --activeExercise: #023E8A;
     --inactiveExercise: white;
     --cardFont: white;
     --cardBackground : black;
     --cardBorderOuter: #023E8A;
-    --gradHandle: #023E8A;
     --cardBorderInner: #c8e7f1;
+    --gradHandle: #023E8A;
   }
 }
 
@@ -69,6 +69,12 @@ body {
   background: var(--body-bg);
   max-width:768px;
   margin:auto;
+}
+
+footer{
+  border-top:10px solid var(--accentColor);
+  font-size:0.6em;
+  padding:30px 15px 15px 15px;
 }
 
 header{

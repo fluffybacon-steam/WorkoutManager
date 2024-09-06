@@ -23,7 +23,6 @@ export function Warmups({warmUps, showWarmups}) {
             trigger:  cardRef.current.querySelector('.drag-handle'),
             onDrag: function(e){
                 const leftPos = parseFloat(cardRef.current.style.left);
-                console.log(leftPos,0.9*offset,offset);
                 if(leftPos <= 0.9*offset){
                     let animation = gsap.timeline();
                     animation.to(cardRef.current,{
@@ -41,7 +40,6 @@ export function Warmups({warmUps, showWarmups}) {
             },
             onDragEnd: function () {
                 const leftPos = parseFloat(cardRef.current.style.left);
-                console.log("drag ended",cardRef.current,leftPos, leftPos, 0.75*offset);
                 if(leftPos <= 0.90*offset){
                     let animation = gsap.timeline();
                     animation.to(cardRef.current,{
