@@ -25,6 +25,7 @@ async function authorize(client: typeof OAuth2Client) {
       path: '/',
       maxAge: 120
     })
+    console.log('client',client);
     const authorizeUrl = client.generateAuthUrl({
       access_type: 'offline',
       scope: SCOPES,
@@ -36,6 +37,7 @@ async function authorize(client: typeof OAuth2Client) {
 
 export async function GET() {
   //Fetch auth url
+  console.log('redirect_uri',redirect_uri);
   const client = new OAuth2Client(
       client_id, client_secret, redirect_uri
   );
