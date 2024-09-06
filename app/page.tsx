@@ -15,12 +15,12 @@ const steps = [
       <>
       <p style={{textWrap:'pretty'}}>Here you can load your favorite spreadsheet program into a user friendly UI.</p>
       <br/>
-      <p style={{textWrap:'pretty'}}>This app was developed with <a style={{textDecoration:'underline'}}href='https://jeffnippard.com/' target='_blank'>Jeff Nippard's programs</a> in mind, 
+      <p style={{textWrap:'pretty'}}>This app was developed with <a style={{textDecoration:'underline'}}href='https://jeffnippard.com/' target='_blank'>Jeff Nippard’s programs</a> in mind, 
       but you can always download the source from GitHub and modify it for your own spreadsheet program.</p>
       <br/>
       <p>I am always looking to improve! Please leave any feedback you have <a style={{textDecoration:'underline'}} href='https://www.reddit.com/user/FluffyBacon_steam/'>here</a>.</p>
       <br/>
-      <p><b>Legal disclaimer:</b> I am not associated with Jeff Nippard and receive no financial gain from the use of app nor the purchase of any Nippard's programs. This is fan/passion project.</p>
+      <p><b>Legal disclaimer:</b> I am not associated with Jeff Nippard and receive no financial gain from the use of app nor the purchase of any Nippard’s programs. This is fan/passion project.</p>
       </>
     ),
     disableBeacon: true,
@@ -130,6 +130,7 @@ export default function Home() {
       window.localStorage.removeItem("sheetUrl");
       window.localStorage.removeItem("demoComplete");
       setUserSheetUrl('');
+      setSheetData('');
       popup("Cleared data cache");
     }
 

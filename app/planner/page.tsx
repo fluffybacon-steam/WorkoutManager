@@ -26,7 +26,7 @@ const steps = [
             </li>
             <li><b>Exercises Cards</b>
                 <ul>
-                    <li>Below the calendar, each exercise is shown as a 'card' of information</li>
+                    <li>Below the calendar, each exercise is shown as a <i>card</i> of information</li>
                 </ul>
             </li>
         </ol>
