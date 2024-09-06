@@ -28,7 +28,7 @@ export default function RootLayout({
         </header>
         {children}
         <footer>
-          <b>Legal disclaimer:</b> I am not associated with Jeff Nippard and receive no financial gain from this app or the purchase of Nippard's program.
+          <b>Legal disclaimer:</b> I am not associated with Jeff Nippard and receive no financial gain from this app or the purchase of Nippard’s program.
           <br/><br/>
           Developed by <a href='https://github.com/fluffybacon-steam'>fluffybacon</a> 2024
         </footer>

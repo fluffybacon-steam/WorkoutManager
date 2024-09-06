@@ -47,7 +47,7 @@ const steps = [
         },
     },
     target: '#workout_0',
-    content: "Select your workout. Let's select the first day of the program",
+    content: "Select your workout. Let’s select the first day of the program",
     placement: 'top' as const,
     disableScrolling:true
   },

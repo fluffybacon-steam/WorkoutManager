@@ -30,19 +30,19 @@ const svg_styles = {
 const sayings = [
     "Drag yourself into bed, you earned it!",
     "Lifting is easy, resting is hard. Get into bed",
-    "Got to rest to grow, or you'll have nothing to show",
+    "Got to rest to grow, or you’ll have nothing to show",
     "Lay down, dream big, and recharge!",
     "Get your @$$ to bed",
     "Surrender to sleep, you’ve earned it.",
     "Wrap yourself in comfort and rest those muscles",
     "Rest now, build body later",
     "Your bed is calling, don’t be rude.",
-    "Are you getting smaller? Guess you aren't resting enough.",
+    "Are you getting smaller? Guess you aren’t resting enough.",
     "The weights can wait... wait.",
     "Rest. recharge. reborn.",
     "Let sleep take over, Sweet Prince...ess",
     "Slide under those covers now",
-    "The only thing you're curling today are pillows",
+    "The only thing you’re curling today are pillows",
     "Lay down and pretend your sleeping."
 ];
 

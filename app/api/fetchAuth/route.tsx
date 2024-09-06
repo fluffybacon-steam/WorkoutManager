@@ -25,7 +25,6 @@ async function authorize(client: typeof OAuth2Client) {
       path: '/',
       maxAge: 120
     })
-    console.log('state',state);
     const authorizeUrl = client.generateAuthUrl({
       access_type: 'offline',
       scope: SCOPES,
@@ -52,9 +51,7 @@ export async function POST(req: NextRequest) {
   //Validate saved credentials
   const body = await req.json(); // Parse the body as JSON
   const {savedCredentialsStr} = body;
-  console.log('fetchAuth POST',body,savedCredentialsStr);
   const credentials = JSON.parse(savedCredentialsStr);
-  console.log('credentials',credentials);
   
   if(credentials){
       const client = new OAuth2Client(
