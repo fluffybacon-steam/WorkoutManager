@@ -12,13 +12,24 @@ gsap.registerPlugin(Draggable);
 export function Exercise({saveExercise, exercise}){
     const cardRef = useRef();
     const { contextSafe } = useGSAP({ scope: cardRef });
-    console.log('exercise',exercise);
 
     useEffect(()=>{
         if(!cardRef.current){
             return
         }
         const offset = -cardRef.current.offsetWidth;
+        let animation = gsap.timeline();
+        animation.to(cardRef.current,{
+            opacity:0,
+            left:(offset*3),
+            duration:0.8
+        })
+        animation.to(cardRef.current,{
+            height: '0px',
+            zIndex: '-100',
+            duration:0.5
+        }, '<=0.25');
+        animation.pause();
         Draggable.create(cardRef.current, {
             type: "left",
             bounds: {minX: offset, maxX: 10},
@@ -26,51 +37,16 @@ export function Exercise({saveExercise, exercise}){
             trigger:  cardRef.current.querySelector('.drag-handle'),
             onDrag: function(e){
                 const leftPos = parseFloat(cardRef.current.style.left);
-                console.log(leftPos,0.9*offset,offset);
                 if(leftPos <= 0.9*offset){
-                    let animation = gsap.timeline();
-                    animation.to(cardRef.current,{
-                        opacity:0,
-                        left:(offset*3),
-                        duration:0.8
-                    })
-                    animation.to(cardRef.current,{
-                        height: '0px',
-                        zIndex: '-100',
-                        duration:0.5
-                    }, '<=0.25');
-                    // animation.eventCallback('onComplete', () => {
-                    //     if (cardRef.current) {
-                    //         cardRef.current.style.display = 'none';
-                    //     }
-                    // });
-                    saveExercise(reps,lbs,exercise.rowOrigin);
-                    animation.play();
+                    if(!animation.isActive()){
+                        saveExercise(reps,lbs,exercise.rowOrigin);
+                        animation.play();
+                    }
                 }   
             },
             onDragEnd: function () {
                 const leftPos = parseFloat(cardRef.current.style.left);
-                console.log("drag ended",cardRef.current,leftPos, leftPos, 0.75*offset);
-                if(leftPos <= 0.90*offset){
-                    let animation = gsap.timeline();
-                    animation.to(cardRef.current,{
-                        opacity:0,
-                        left:(offset*3),
-                        duration:0.8
-                    })
-                    animation.to(cardRef.current,{
-                        height: '0px',
-                        zIndex: '-100',
-                        duration:0.5
-                    }, '<=0.25');
-                    // animation.eventCallback('onComplete', () => {
-                    //     if (cardRef.current) {
-                    //         cardRef.current.style.display = 'none';
-                    //     }
-                    // });
-                    saveExercise(reps,lbs,exercise.rowOrigin);
-                    animation.play();
-                } else {
+                if(leftPos > 0.90*offset){
                     gsap.to(cardRef.current,{
                         left:0
                     })
@@ -79,13 +55,6 @@ export function Exercise({saveExercise, exercise}){
         });
 
     },[cardRef])
-
-
-    useEffect(()=>{
-        console.log("useEF exercise",exercise);
-    },[exercise])
-    
-
 
     const restMinMax = parseTimeRange(exercise.rest);
     let defaultDuration;
@@ -120,7 +89,7 @@ export function Exercise({saveExercise, exercise}){
                             id="timer" name="timer" 
                             min={restMinMax.min} max={restMinMax.max} 
                             step={0.1}
-                            ></input>
+                        />
                         <button onClick={()=>{ setTimerState(true) }}>Start Timer</button>
                         </>
                     )}
@@ -128,9 +97,10 @@ export function Exercise({saveExercise, exercise}){
                 <div className="timer-wrapper" hidden={!timerState}>
                     <CountdownCircleTimer
                         key={key}
+                        colors={'var(--activeExercise)'}
+                        trailColor="white"
                         isPlaying={timerState}
                         duration={timerDuration ? timerDuration : defaultDuration}
-                        colors={'#228ded'}
                     >
                         {renderTime}
                     </CountdownCircleTimer>
@@ -181,19 +151,20 @@ const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
     const lastSet_i = exercise.workingSets - 1;
 
     let repsRange = exercise.repRange.split(',');
-    repsRange = (repsRange.length > 1) ? repsRange : Array(exercise.workingSets - 1).fill(exercise.repRange);
+    repsRange = (repsRange.length > 1) ? repsRange : Array(exercise.workingSets).fill(exercise.repRange);
 
     const handleInput = (i,value,type) => {
         let tempData;
+        
         if(type == 'reps'){
             //Reps
             tempData = reps;
-            tempData[i] = value;
+            tempData[i] = parseFloat(value);
             setReps(tempData);
         } else {
             //Lbs
             tempData = lbs;
-            tempData[i] = value;
+            tempData[i] = parseFloat(value);
             setLbs(tempData);
         }
     }
@@ -263,11 +234,14 @@ const Table = ({ exercise, reps, setReps, lbs, setLbs }) => {
             </div> */}
             <div className="cell color-legend">
                 <p>RPE Scale</p>
-                {colorLegend.map(([value, color]) => (
-                    <div key={value} className="number" style={{ backgroundColor: color }}>
-                        {value}
-                    </div>
-                ))}
+                {colorLegend.map(([value, color]) => {
+                    let ft_color = (value >= demarcation) ? 'white' : 'black';
+                    return (
+                        <div key={value} className="number" style={{ backgroundColor: color, color: ft_color }}>
+                            {value}
+                        </div>
+                    )}
+                )}
             </div>
         </div>
     )
@@ -284,7 +258,6 @@ const Movements = ({exercise}) => {
                     return result
                 })
                 .filter(Boolean);
-    console.log("<Movements />",movements);
     if(movements.length == 0){
         return ("coming soon")
     }

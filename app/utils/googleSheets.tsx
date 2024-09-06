@@ -18,11 +18,13 @@ class Workout {
   day: string;
   complete: boolean;
   exercises: any[];
+  key: number;
 
-  constructor(day: string) {
+  constructor(day: string, key: number = -1) {
     this.day = day;
     this.complete = false;
     this.exercises = [];
+    this.key = key;
   }
 
   public addVideos(videoMap: Map<string,string>){
@@ -171,7 +173,7 @@ export async function formateGoogleSheet(sheet: any) {
           currentDay = undefined;
         }
         if(cellString.toLowerCase().includes('rest day')){
-          workoutDays.push(cellString);
+          workoutDays.push(new Workout(cellString,workoutDays.length));
         }
       } else if (adjacentCell != undefined || adjacentCell != '' ){
         //New day
@@ -179,7 +181,7 @@ export async function formateGoogleSheet(sheet: any) {
           workoutDays.push(currentDay);
         }
 
-        currentDay = new Workout(cellString);
+        currentDay = new Workout(cellString,workoutDays.length);
         currentDay.addExercise({
           primary: sheet.getCell(i, 1).stringValue || sheet.getCell(i, 1).formattedValue,
           sub1: sheet.getCell(i, 13).stringValue || sheet.getCell(i, 13).formattedValue,
@@ -203,51 +205,50 @@ export async function formateGoogleSheet(sheet: any) {
         currentDay.addVideos(videoMap);
       }
     }
-
-    //WeakPoints are defined in .getCell(26,4) to .getCell(54,13) 
-    var weakPoints = [];
-    let currentPoint = undefined;
-    for (let i = 26; i <= 54; i++) {
-        const cellString = sheet.getCell(i, 4).stringValue;
-        console.log('cellstring', cellString,sheet.getCell(i, 5).stringValue,sheet.getCell(i, 6).stringValue);
-        if((cellString == undefined || cellString == '')){
-          //Cell is blank
-          if(currentPoint){
-            //Add exercises 1 and 2/info
-            currentPoint.addContent(sheet.getCell(i, 5).stringValue);
-            currentPoint.addContent(sheet.getCell(i, 6).stringValue);
-          } else {
-            //do nothing
-          }
-        } else {
-          //Cell has value
-          if(currentPoint){
-            //End current point
-            currentPoint.addVideos(videoMap);
-            weakPoints.push(currentPoint);
-          }
-          //Begin new point
-          currentPoint = new WeakPoint(cellString);
+  }
+  //WeakPoints are defined in .getCell(26,4) to .getCell(54,13) 
+  var weakPoints = [];
+  let currentPoint = undefined;
+  for (let i = 26; i <= 54; i++) {
+      const cellString = sheet.getCell(i, 4).stringValue;
+      console.log('cellstring', cellString,sheet.getCell(i, 5).stringValue,sheet.getCell(i, 6).stringValue);
+      if((cellString == undefined || cellString == '')){
+        //Cell is blank
+        if(currentPoint){
+          //Add exercises 1 and 2/info
           currentPoint.addContent(sheet.getCell(i, 5).stringValue);
           currentPoint.addContent(sheet.getCell(i, 6).stringValue);
+        } else {
+          //do nothing
         }
+      } else {
+        //Cell has value
+        if(currentPoint){
+          //End current point
+          currentPoint.addVideos(videoMap);
+          weakPoints.push(currentPoint);
+        }
+        //Begin new point
+        currentPoint = new WeakPoint(cellString);
+        currentPoint.addContent(sheet.getCell(i, 5).stringValue);
+        currentPoint.addContent(sheet.getCell(i, 6).stringValue);
+      }
+  }
+  console.log(weakPoints);
+  // console.log('videoMap3',videoMap);
+  //warmupsTable
+  let warmUps = [];
+  for (let i = 10; i <= 15; i++) {
+    const reps = sheet.getCell(i, 4).stringValue;
+    for (let ii = 6; ii <= 13; ii++) {
+      const exercise = sheet.getCell(i, ii).stringValue;
+      if (exercise !== undefined && exercise !== '') {
+        const video_url = videoMap.get(exercise);
+        warmUps.push([reps, exercise, video_url]);
+        break; // Exit the inner loop once a valid exercise is found
       }
     }
-    console.log(weakPoints);
-    // console.log('videoMap3',videoMap);
-    //warmupsTable
-    let warmUps = [];
-    for (let i = 10; i <= 15; i++) {
-      const reps = sheet.getCell(i, 4).stringValue;
-      for (let ii = 6; ii <= 13; ii++) {
-        const exercise = sheet.getCell(i, ii).stringValue;
-        if (exercise !== undefined && exercise !== '') {
-          const video_url = videoMap.get(exercise);
-          warmUps.push([reps, exercise, video_url]);
-          break; // Exit the inner loop once a valid exercise is found
-        }
-      }
-    }
+  }
 
    // console.log(warmUps);
 

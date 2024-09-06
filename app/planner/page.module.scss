@@ -2,35 +2,6 @@
     width:100%;
 }
 
-.calendar{
-    margin-top: 20px;
-    display: inline-grid;
-    grid-auto-columns: 300px;
-    grid-auto-flow: column;
-    overflow-x: scroll;
-    white-space: nowrap;
-    width:100%;
-    :global{
-        .day{
-            text-align:center;
-            background:none;
-            grid-column:span 1;
-            grid-row: 1/2;
-            border-color: white;
-            border-width: 5px 2.5px;
-            border-style: solid;
-            padding:25px;
-        }
-        [data-complete=true] + .day:not([data-complete]),
-        [data-complete=true]{
-            background:var(--secondary);
-        }
-        .current{
-            border-color: red;
-        }
-    }
-}
-
 .exercises{
     padding:clamp(5px,5vw, 50px);
 }
@@ -54,6 +25,13 @@
             background:black;
             max-width:500px;
             width:100%;
+            button:first-child{
+                background: none;
+                width: fit-content;
+                border: none;
+                float: right;
+                cursor: pointer;
+            }
             h2{
                 font-size:1.5em;
             }

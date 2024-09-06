@@ -76,9 +76,6 @@ function AuthorizeComponent() {
     return (
         <>
             <h2 className={styles.title}>{statusText}</h2>
-            <div className={styles.loaderWrapper}>
-                <div className={styles.loader}></div>
-            </div>
         </>
     )
 }

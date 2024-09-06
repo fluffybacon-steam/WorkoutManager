@@ -4,23 +4,44 @@
   --font-mono: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
     "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
     "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
-  --body-bg:white;
-  --primary : #D5B942;
-  --secondary : #E3DE8F;
-  --tertiary: #BFCBC2;
-  --quad: #EDFBC1;  
-  --fontColor: black;
+    --body-bg:#EEEEEE;
+    --fontColor: black;
+    --accentColor: #82AA57;
+    --buttonBg: #82AA57;
+    --buttonColor: black;
+    --calendarFont: black;
+    --calendarBar: #C5D86D;
+    --dayIncomplete: #C5D86D;
+    --dayComplete:#82AA57;
+    --dayCurrentDay: #618943;
+    --activeExercise: #82AA57;
+    --inactiveExercise: black;
+    --cardFont: black;
+    --cardBackground : #EEEEEE;
+    --cardBorderOuter: #82AA57;
+    --cardBorderInner: #C5D86D;
+    --gradHandle: #82AA57;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --body-bg:black;
-    --primary : #2B3A67;
-    --secondary : #496A81;
-    --buttonBg: #66999B;
-    --buttonColor: white;
-    --quad: #FFC482;
+    --body-bg:#051720;
     --fontColor: white;
+    --accentColor: #023E8A;
+    --buttonBg: #023E8A;
+    --buttonColor: white;
+    --calendarFont: white;
+    --calendarBar: #03045E;
+    --dayIncomplete: #0096C7;
+    --dayComplete:#023E8A;
+    --dayCurrentDay: white;
+    --activeExercise: #023E8A;
+    --inactiveExercise: white;
+    --cardFont: white;
+    --cardBackground : black;
+    --cardBorderOuter: #023E8A;
+    --gradHandle: #023E8A;
+    --cardBorderInner: #c8e7f1;
   }
 }
 
@@ -35,6 +56,7 @@
 html { 
   line-sizing: normal;
   font-size:24px;
+  scroll-behavior: smooth;
 }
 
 html,
@@ -49,9 +71,42 @@ body {
   margin:auto;
 }
 
-h1{
-  text-align: center;
-  border-bottom:2px solid var(--quad);
+header{
+  border-bottom:10px solid var(--accentColor);
+  padding: 15px;
+  font-size:1.25rem;
+  color:var(--fontColor);
+  h1{
+    font-size:1em;
+    width: fit-content;
+    margin-right:auto;
+  }
+  label{
+    font-size:0.6em;
+    display: flex;
+    gap:5px;
+    align-items: center;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    text-wrap: balance;
+    cursor:pointer;
+  }
+  button{
+    cursor:pointer;
+    display: inline-block;
+    background:none;
+    border:none;
+    width:30px;
+    aspect-ratio: 1/1;
+    flex-shrink:0;
+    color:inherit;
+    svg{
+      display: inline-block;
+      width:100%;
+      height:100%;
+      fill: currentColor;
+    }
+  }
 }
 
 a {
@@ -68,10 +123,13 @@ ol,ul{
 }
 
 .popup{
-  background: green;
-  border:2px solid white;
-  width: fit-content;
-  height: 50px;
+  text-align: center;
+  background: var(--accentColor);
+  color:var(--fontColor);
+  border:2px solid var(--fontColor);
+  border-radius: 20px;
+  width: clamp(250px, 80vw, 400px);
+  height: fit-content;
   padding: 10px;
   margin: auto;
   position: fixed;
@@ -108,6 +166,33 @@ ol,ul{
     opacity: 0;
     translate:0px 0px;
   }
+}
+
+#loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  inset:0 0 0 0;
+  width: 100%;
+  height: 100svh;
+  z-index: 1000;
+  .spinner {
+    display: block;
+    width: 80px;
+    height: 80px;
+    border: 8px solid var(--fontColor);
+    border-top: 8px solid var(--accentColor); 
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+  }
+}
+
+
+/* Animation for the loader */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (prefers-color-scheme: dark) {

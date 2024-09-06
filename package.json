@@ -23,6 +23,7 @@
     "react": "^18",
     "react-countdown-circle-timer": "^3.2.1",
     "react-dom": "^18",
+    "react-joyride": "^2.8.2",
     "sass": "^1.77.8",
     "swr": "^2.2.5"
   },

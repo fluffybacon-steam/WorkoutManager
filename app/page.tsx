@@ -2,25 +2,53 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { Calendar } from './components/Calendar';
-import {Exercise} from './components/Exercise';
-import {Blank} from './components/Blank';
-import { getCookie } from 'cookies-next';
+import {popup, isLoading} from './utils/helpers';
 import styles from './page.module.scss';
+import Joyride from 'react-joyride';
+import {CallBackProps, ACTIONS, EVENTS, STATUS, ORIGIN } from 'react-joyride';
+
+const steps = [
+  {
+    target: 'body h1',
+    content: 'Welcome to my workout planner. Here you can load your spreadsheet program into a more user friendly UI',
+    disableBeacon: true,
+    placement: 'auto' as const,
+  },
+  {
+    target: 'body ol',
+    content: 'Before you can begin, you will need to upload your spreadsheet to your Google Drive. Follow these instructions',
+    placement: 'auto' as const,
+  },
+  {
+    target: 'body input',
+    content: 'Enter the URL of your Google Spreadsheet here',
+    placement: 'auto' as const,
+  },
+  {
+    target: 'body button:nth-child(7)',
+    content: 'Once you are sign-in, your workouts will be saved locally and be accessible from the Planner (no internet required).',
+    placement: 'auto' as const,
+  },
+]
 
 export default function Home() {
     const router = useRouter();
     const [userSheetUrl, setUserSheetUrl] = useState<string>('');
     const [sheetData, setSheetData] = useState<string>('');
 
+    const [firstTime, setFirstTime] = useState<boolean>(true);
+    const [run, setRun] = useState(false);
+    const [stepIndex, setStepIndex] = useState(0);
+
     const fetchAuth = async () => {
       console.log('fetchAuth');
+      isLoading(true);
       // const savedSheetUrl =  window.localStorage.getItem("sheetUrl");
 
       if(userSheetUrl) {
         window.localStorage.setItem("sheetUrl",userSheetUrl);
       } else {
-        alert("No sheet url given");
+        alert("Error: No sheet url given");
       }
 
       const savedCredentialsStr = window.localStorage.getItem("ga_credentials");
@@ -79,7 +107,9 @@ export default function Home() {
       window.localStorage.removeItem("ga_credentials");
       window.localStorage.removeItem("sheetData");
       window.localStorage.removeItem("sheetUrl");
+      window.localStorage.removeItem("demoComplete");
       setUserSheetUrl('');
+      popup("Cleared data cache");
     }
 
     useEffect(()=>{
@@ -92,15 +122,54 @@ export default function Home() {
       if(sheetDataJson){
         setSheetData(sheetDataJson);
       }
+
+      const demo = window.localStorage.getItem('demoComplete');
+      if (demo) {
+        setFirstTime(false); // If demo is complete, firstTime should be false
+      } else {
+        setFirstTime(true); // If no demoComplete, set firstTime to true
+        setRun(true); // Start the tour
+      }
     },[])
+
+    const handleJoyrideCallback = (data: CallBackProps) => {
+      const { action, index, origin, status, type } = data;
+  
+      if (action === ACTIONS.CLOSE && origin === ORIGIN.KEYBOARD) {
+        window.localStorage.setItem('demoComplete','1');
+      }
+  
+      if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+        // Update state to advance the tour
+        setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
+      } else if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+        // You need to set our running state to false, so we can restart if we click start again.
+        setRun(false);
+      }
+    };
 
     return (
         <div className={styles.home}>
+            {firstTime && (
+              <Joyride
+                run={run}
+                steps={steps}
+                stepIndex={stepIndex}
+                callback={handleJoyrideCallback}
+                continuous={true}
+              />
+            )}
             <h2>Login into Google</h2>
             <h3>Instructions:</h3>
               <ol>
                 <li>Upload your worksheet spreadsheet to your Google Drive.</li>
-                <li>Save spreadsheet as a Google Sheet. Under File, click Save as a Google Sheet.</li>
+                <li>Save spreadsheet as a Google Sheet. 
+                  <ul>
+                    <li>
+                    Under File, click Save as a Google Sheet.
+                    </li>
+                  </ul>
+                </li>
                 <li>Paste the URL of the Google sheet below.</li>
               </ol>
             <input
@@ -109,8 +178,8 @@ export default function Home() {
                 onChange={(e) => setUserSheetUrl(e.target.value)}
                 placeholder="Enter Google Sheets URL"
             />
-            <button disabled={(sheetData == '')} onClick={()=>{router.push('/planner');}}>Load workout from local memory</button>
-            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load workout from sheet</button>
+            <button disabled={(sheetData == '')} onClick={()=>{router.push('/planner');}}>Load workouts from local memory</button>
+            <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load workouts from sheet (overwrites local data)</button>
             <button onClick={clearCache}>Clear cached data</button>
         </div>
     );

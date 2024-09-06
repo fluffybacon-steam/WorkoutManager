@@ -1,0 +1,36 @@
+.wrapper{
+    padding:clamp(5px, 5vw, 50px);
+:global{
+    .home-button{
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        padding: 1em 1em;
+        margin: 10px 0;
+        background-color: var(--buttonBg);
+        color: var(--buttonColor);
+        text-wrap: balance;
+    }
+    #loader{
+        height:150px;
+        position: static;
+    }
+    div{
+       margin-bottom:20px;
+    }
+    .exercise_card{
+        --dragWidth: 1em;
+        --bkg: var(--cardBackground);
+        --border-radius: 10px;
+        --inputWidth: 100px;
+        --tableGap: 5px;
+        font-size: 0.7rem;
+        border: white 1px solid;
+        border-radius: var(--border-radius);
+        margin-bottom: 20px;
+        position: relative;
+        background: var(--bkg);
+        display: grid;
+    }
+}
+}

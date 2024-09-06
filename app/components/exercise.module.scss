@@ -1,11 +1,12 @@
 .card{
-    --dragWidth: 1em;
-    --bkg: var(--primary);
+    --dragWidth: clamp(25px,1em,50px);
+    --bkg: var(--cardBackground);
     --border-radius:10px;
     --inputWidth: 100px;
     --tableGap: 5px;
     font-size:0.7rem;
-    border:white 1px solid;
+    border:var(--cardBorderOuter) 5px solid;
+    border-right-color:var(--gradHandle);
     border-radius:var(--border-radius);
     // padding:20px;
     margin-bottom: 20px;
@@ -22,13 +23,14 @@
             gap:clamp(5px,1em,15px);
             display:flex;
             flex-wrap: wrap;
+            color:var(--cardFont);
         }
         .drag-handle{
             grid-row:1/2;
             grid-column:2/3;
             display:block;
             width:var(--dragWidth);
-            background-image: radial-gradient(circle, white 10%, transparent 10%);
+            background-image: radial-gradient(circle, var(--gradHandle) 30%, transparent 30%);
             background-size: 5px 5px;
             border-radius:0 var(--border-radius) var(--border-radius) 0;
         }
@@ -76,9 +78,17 @@
                     border-radius: 50%;
                     font-size:1em;
                     cursor: pointer;
+                    border-top-color: var(--inactiveExercise);
+                    border-bottom-color:hsl(from var(--inactiveExercise) h s 50%);
+                    border-right-color:hsl(from var(--inactiveExercise) h s 50%);
+                    border-left-color:var(--inactiveExercise);
+                    border-width: medium;
                 }
                 .active{
-                    border-color: darkred;
+                    border-top-color: var(--activeExercise);
+                    border-bottom-color:hsl(from var(--activeExercise) h s 50%);
+                    border-right-color:hsl(from var(--activeExercise) h s 50%);
+                    border-left-color:var(--activeExercise);
                 }
             }
         }
@@ -90,6 +100,12 @@
             text-align: center;
             input,button{
                 display: block;
+                accent-color: var(--buttonBg);
+            }
+            button{
+                margin-top: 5px;
+                background:var(--buttonBg);
+                color: var(--buttonColor);
             }
         }
         .timer-wrapper{
@@ -153,7 +169,7 @@
                 grid-template-columns: subgrid;
                 grid-row:span 1;
                 grid-column: 1/-1;
-                border:1px solid white;
+                border:2px solid var(--cardBorderInner);
                 place-items: center;
                 span{
                     display: block;
@@ -175,7 +191,7 @@
                     grid-row:span 1;
                     grid-column:1/3;
                     text-align: left;
-                    border-bottom: 1px solid white;
+                    border-bottom: 1px solid var(--cardBorderInner);
                     font-size:0.75em;
                 }
                 span{
@@ -218,7 +234,7 @@
                     padding:5px;
                 }
                 div{
-                    border:black 1px solid;
+                    border:var(--cardBorderInner) 1px solid;
                     flex: 1 1 0%;
                     text-align: center;
                     padding:5px;

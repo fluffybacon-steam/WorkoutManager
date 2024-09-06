@@ -6,7 +6,59 @@ import { Calendar } from '../components/Calendar';
 import {Exercise} from '../components/Exercise';
 import {Blank} from '../components/Blank';
 import styles from './page.module.scss';
-import axios from 'axios';
+import Joyride from 'react-joyride';
+import { CallBackProps, ACTIONS, EVENTS, STATUS, ORIGIN } from 'react-joyride';
+
+const steps = [
+  {
+    target: 'header label:nth-child(3)',
+    content: 'Welcome to the Planner. Here is where you will track your workouts',
+    disableBeacon: true,
+  },
+  {
+    disableBeacon: true,
+    disableOverlayClose: true,
+    hideCloseButton: true,
+    hideFooter: true,
+    spotlightClicks: true,
+    styles: {
+        options: {
+            zIndex: 10000,
+        },
+    },
+    target: '#workout_0',
+    content: "Select your workout. Let's select the first day of the program",
+    placement: 'top' as const,
+    disableScrolling:true
+  },
+  {
+    target: '.day.current',
+    content: 'Your exercises for the day will populate below',
+    placement: 'bottom' as const,
+  },
+  {
+    target: 'div:has(.drag-handle):first-child .drag-handle',
+    content: 'Once an exercise has been completed, you can drag it off the screen',
+    placement: 'top-end' as const,
+    styles: {
+        options: {
+            zIndex: 10000,
+        },
+    },
+  },
+  {
+    target: 'header label:nth-child(4)',
+    content: "Do not forget to occasionally back up your data to the spreadsheet",
+    placement: 'right' as const,
+  },
+  {
+    target: 'body h1',
+    content: (
+        <p>That concludes the tour.<br/>May your gains be great!</p>
+    ),
+    placement: 'top' as const,
+  },
+]
 
 interface WeakPoint {
     point: string;
@@ -18,41 +70,81 @@ interface Workout {
     day: string;
     complete: boolean;
     exercises: Array<any>;
+    key: number;
 }
 
 interface sheetData {
     warmUps: Object;     
-    weakPoints: Object;    
+    weakPoints: WeakPoint[] | null;    
     workoutDays: Array<Workout>;     
 }
 
 export default function Planner(){
     console.log("rendered Planner");
     const router = useRouter();
-    const [workoutDays, setWorkoutDays] = useState<Array<Workout | String> | null>(null);
+    const [initializing, isInitializing] = useState<boolean>(true);
+    const [workoutDays, setWorkoutDays] = useState<Array<Workout> | null>(null);
     const [warmUps, setWarmUps] = useState<Object | null>(null);
-    const [weakPoints, setWeakPoints] = useState<Object | null>(null);
+    const [weakPoints, setWeakPoints] = useState<WeakPoint[] | null>(null);
     const [weakPointSelection, setWeakPointSelection] = useState<Array<string> | null>(null);
     
     const [currentDay, setCurrentDay] = useState<Workout | null>(null);
+    const [hash, setHash] = useState('');
     const [showWarmups, setShowWarmups] = useState<Boolean>(false);
+
+    const [firstTime, setFirstTime] = useState<boolean>(true);
+    const [run, setRun] = useState(false);
+    const [stepIndex, setStepIndex] = useState(0);
+
+    const handleJoyrideCallback = (data: CallBackProps) => {
+        const { action, index, origin, status, type } = data;
+        console.log('action',action, index, origin, status, type);
     
+        if (status == 'finished') {
+          window.localStorage.setItem('demoPlannerComplete','1');
+        }
+    
+        if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+          // Update state to advance the tour
+          setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
+        } else if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+          // You need to set our running state to false, so we can restart if we click start again.
+          setRun(false);
+        }
+    
+
+        console.groupCollapsed(type);
+        console.log(data); //eslint-disable-line no-console
+        console.groupEnd();
+      };
+
     //assign sheetData to component state variables
     const assignWorkoutData = (sheetData: sheetData) => {
         console.log("assignWorkoutData");
         if(sheetData?.workoutDays){
-            console.log('assigned1');
-            setWorkoutDays(sheetData.workoutDays);
+            const processedWorkoutDays = processWorkoutDays(sheetData.workoutDays);
+            setWorkoutDays(processedWorkoutDays);
         }
         if(sheetData?.warmUps){
-            console.log('assigned2');
             setWarmUps(sheetData.warmUps);
         }
         if(sheetData?.weakPoints){
-            console.log('assigned3');
             setWeakPoints(sheetData.weakPoints);
         }
+        isInitializing(false);
     }
+
+    useEffect(() => {
+        const handleHashChange = () => {
+          setHash(window.location.hash);
+        };
+
+        handleHashChange();
+        window.addEventListener('hashchange', handleHashChange);
+        return () => {
+          window.removeEventListener('hashchange', handleHashChange);
+        };
+      }, [router]);
     
     // Look for saved sheetData; else go back to home;
     useEffect(() => {
@@ -66,177 +158,199 @@ export default function Planner(){
                 router.push('/');
             }
         }
+
+        //Set initial currentDay
+        const dayFromUrl: RegExpMatchArray | null = hash.match(/\d+/);
+        if (dayFromUrl && workoutDays) {
+            console.log('dayFromUrl route');
+            const dayIndex: number = parseInt(dayFromUrl[0], 10); // Convert the string to a number
+            if (!isNaN(dayIndex) && dayIndex >= 0 && dayIndex < workoutDays.length) { // Ensure it's a valid index
+                setCurrentDay(workoutDays[dayIndex]);
+            }
+        } else if (!currentDay && workoutDays?.length) {
+            console.log('currentDay null route');
+            for (let i = 0; i < workoutDays.length; i++) {
+                const workout = workoutDays[i];
+                console.log('Looking for current day', workout);
+                if (!workout.complete) {
+                    //check to see if its a rest day
+                    if(workout.exercises.length == 0 && workoutDays[i+1].complete){
+                        continue
+                    }
+                    setCurrentDay(workout);
+                    break; 
+                }
+            }
+        }
+
+        const demo = window.localStorage.getItem('demoPlannerComplete');
+        if (demo) {
+            setFirstTime(false); // If demo is complete, firstTime should be false
+        } else {
+            setFirstTime(true); // If no demoComplete, set firstTime to true
+        }
     }, []);
 
     useEffect(()=>{
-        if(currentDay?.complete){
-            setShowWarmups(true);
-        } else {
-            setShowWarmups(false);
-        }
-    },[currentDay])
-
-
-    //Save weakpoint exercises to state variables
-    //NEED to save to sheet and localStorage as well
-    useEffect(()=>{
-        console.log("WQEFFFFFFFFF",);
         if(weakPointSelection && currentDay && workoutDays){
-            let tempCurrentDay = currentDay;
-            const exercises = tempCurrentDay.exercises;
-            if(exercises){
-                const updatedExercises = exercises.map(ex =>{
-                    if (ex.primary.toLowerCase().includes("weak point") && ex.sub1 === ex.sub2) {
-                        console.log('old',ex.primary);
-                        const weakPoint = weakPointSelection.pop();
-                        if(Array.isArray(weakPoint)) {
-                            ex.primary = weakPoint[0];
-                            ex.primary_vid = weakPoint[1];
-                        } else {
-                            ex.primary = weakPoint;
-                        }
-                        ex.sub1 = null;
-                        ex.sub2 = null;
-                        console.log('added weakpoint to updateEx',ex.primary);
-                    }
-                    return ex;
-                });
-                console.log('updatedExercises',updatedExercises);
-                // tempWorkDays[index].exercises = updatedExercises;
-                tempCurrentDay.exercises = updatedExercises;
-                
-                let index = workoutDays.findIndex(day => currentDay === day);
-                let tempWorkDays = workoutDays;
-                tempWorkDays[index] = tempCurrentDay;
-                setCurrentDay(null);
-                setWorkoutDays(tempWorkDays);
-                // setCurrentDay(workoutDays[index]);
-            }
-            console.log('check work!',workoutDays,currentDay);
-            //tempWorkDays.forEach((day,index)=>{
-            //});
+            const updatedDay = saveWeakPointsToDay(weakPointSelection, currentDay);
+            updateWorkoutDay(updatedDay);
         }
     },[weakPointSelection])
 
-
     useEffect(() => {
-        if (!currentDay && workoutDays?.length) {
-            for (const day of workoutDays) {
-                console.log('Looking for current day', day);
-                if(typeof day == "string"){
-                    continue;
-                }
-                if (!day.complete) {
-                    console.log("Found it!");
-                    setCurrentDay(day);
-                    break;  // Exit the loop once the current day is found and set
-                }
+        console.log('currentDay useEffect()',currentDay);
+        if(firstTime && currentDay){
+            setStepIndex(prevStep => prevStep + 1);
+        }
+        if(currentDay){
+            if(!currentDay?.complete){
+                setShowWarmups(true);
+            } else {
+                setShowWarmups(false);
             }
         }
-    }, [workoutDays, currentDay, setCurrentDay]);
-    
+    }, [currentDay]);
 
-    // Save exercise to state variables
-    // ugly way to handle this but oh well. refactor later?
-    // Add save to localStorage later
-    const saveExerciseLocally = (reps: Array<number>, lbs: Array<number>, rowI: number) => {
-        if(!workoutDays){
+    useEffect(()=>{
+        if(workoutDays != null && !initializing){
+            saveStatetoLocalStorage(workoutDays);
+        }
+    },[workoutDays])
+
+    useEffect(()=>{
+        if(initializing == false){
+            if(firstTime){
+                setRun(true);
+            }
+        }
+    },[initializing])
+
+    //save changed day to workouts/planner array
+    const updateWorkoutDay = (day: Workout) =>{
+        console.log('updateWorkoutDay',day);
+        setWorkoutDays(prevWorkoutDays => {
+            if (!prevWorkoutDays) {
+                return null;
+            }
+            const newWorkoutDays = [...prevWorkoutDays];
+            newWorkoutDays[day.key] = day;
+            return newWorkoutDays;
+        });
+    }
+
+    //Save weakpoint/exercise selections to day
+    const saveWeakPointsToDay = (points: Array<string | Array<string>>, day: Workout) =>{
+        let tempCurrentDay = day;
+        const updatedExercises = tempCurrentDay.exercises.map(exercise =>{
+            if (exercise.primary.toLowerCase().includes("weak point") && exercise.sub1 === exercise.sub2) {
+                const weakPoint = points.pop();
+                if(Array.isArray(weakPoint)) {
+                    exercise.primary = weakPoint[0];
+                    exercise.primary_vid = weakPoint[1];
+                } else {
+                    exercise.primary = weakPoint;
+                }
+                exercise.sub1 = null;
+                exercise.sub2 = null;
+            }
+            return exercise;
+        });
+        tempCurrentDay.exercises = updatedExercises;
+        return tempCurrentDay
+
+        // if(exercises.length != 0){
+        //     const updatedExercises = exercises.map(ex =>{
+        //         if (ex.primary.toLowerCase().includes("weak point") && ex.sub1 === ex.sub2) {
+        //             console.log('old',ex.primary);
+        //             const weakPoint = weakPointSelection.pop();
+        //             if(Array.isArray(weakPoint)) {
+        //                 ex.primary = weakPoint[0];
+        //                 ex.primary_vid = weakPoint[1];
+        //             } else {
+        //                 ex.primary = weakPoint;
+        //             }
+        //             ex.sub1 = null;
+        //             ex.sub2 = null;
+        //             console.log('added weakpoint to updateEx',ex.primary);
+        //         }
+        //         return ex;
+        //     });
+        //     console.log('updatedExercises',updatedExercises);
+        //     // tempWorkDays[index].exercises = updatedExercises;
+        //     tempCurrentDay.exercises = updatedExercises;
+        //     let index = workoutDays.findIndex(day => currentDay === day);
+        //     let tempWorkDays = workoutDays;
+        //     tempWorkDays[index] = tempCurrentDay;
+        //     setCurrentDay(null);
+        //     //Need to set to null to reload component with new info.
+        //     setWorkoutDays(tempWorkDays);
+            
+        //     // setCurrentDay(workoutDays[index]);
+        // }
+        //tempWorkDays.forEach((day,index)=>{
+        //});
+    }
+
+    // Save exercise reps/lbs to day
+    const saveRepsToExercise = (reps: Array<number>, lbs: Array<number>, rowI: number, day: Workout | null = currentDay) => {
+        console.log('saveRepsToExercise',reps,lbs,rowI,day);
+        const key = day?.key;
+        console.log('check',key, workoutDays);
+        if(typeof key == "undefined" || !workoutDays){
             return
         }
-        console.log('saveExerciseLocally',workoutDays);
-        const recordedSets = reps.map((rep, index) => `${rep} x ${lbs[index]}`);
-        console.log(recordedSets);
         let tempWorkDays = workoutDays;
-        tempWorkDays.forEach((day,index)=>{
-            const exercises = day.exercises;
-            if(exercises){
-                const updatedExercises = exercises.map(exercise =>{
-                    if(exercise.rowOrigin === rowI){
-                        return {...exercise, recordedSets: recordedSets }
-                    }
-                    return exercise;
-                });
-                tempWorkDays[index].exercises = updatedExercises;
-            }
-        });
-        setWorkoutDays(tempWorkDays);
+        const recordedSets = reps.map((rep, index) => `${rep} x ${lbs[index]}`);
+
+        const dayToUpdate = tempWorkDays[key];
+        console.log(dayToUpdate);
+        if (dayToUpdate) {
+            dayToUpdate.exercises = dayToUpdate.exercises.map(exercise => {
+                if (exercise.rowOrigin === rowI) {
+                    return { ...exercise, recordedSets: recordedSets };
+                }
+                return exercise;
+            });
+            dayToUpdate.complete = true;
+            updateWorkoutDay(dayToUpdate);
+        }
     }
 
-    const saveExercise = async (reps: Array<number>, lbs: Array<number>, rowI: number) =>{
-        //Save exercise to spreadsheet
-        const savedCredentialsStr = window.localStorage.getItem("ga_credentials");
-        const sheetUrl = window.localStorage.getItem("sheetUrl");
-        const popup = document.querySelector('.popup');
-        console.log('popuo!',popup);
-        let popup_message = "Error: No OAuth2 credentials or Sheet found";
-        if(savedCredentialsStr && sheetUrl){
-            console.log('savedCred before fetchAuth', savedCredentialsStr);
-            const credentials = await axios.post(`/api/fetchAuth`, 
-                { savedCredentialsStr}
-                ).then((res)=>{
-                  return res.data.credentials;
-                }).catch((err)=>{
-                  console.log('Failed to use saved creds',err,err.response.data?.auth_url);
-                  if(err.response.status == 307){
-                    // router.replace(err.response.data?.auth_url);
-                  }
-                });
-            if(credentials){
-                popup_message = await axios.post(`/api/saveExercise`, { 
-                        credentials,
-                        reps,
-                        lbs,
-                        rowI,
-                        sheetUrl
-                    }).then((res)=>{
-                        console.log(res);
-                        console.log("saveExerciseLocally b",workoutDays);
-                        saveExerciseLocally(reps,lbs,rowI);
-                        console.log("saveExerciseLocally a",workoutDays);
-                        return "Saved exercise";
-                    }).catch((err)=>{
-                        console.log(err);
-                        return "Error: Unable to save exercise";
-                    });
-            } else {
-                popup_message = "Error: OAuth2 credentials failed";
-            }
-        } else {
-            popup_message = "Error: Could not save exercise as either credentials or sheet url are not saved";
-        }
-        if(popup){
-            console.log(popup_message);
-            popup.innerHTML = popup_message;
-            popup.classList.add('active');
-            setTimeout(()=>{
-                popup.classList.remove('active');
-            },5000);
-        }
-    }
     
     return(
         <div className={styles.planner}>
-            <Calendar styles={styles} workoutDays={workoutDays} setCurrentDay={setCurrentDay} currentDay={currentDay}/>
+            {firstTime && (
+              <Joyride
+                run={run}
+                steps={steps}
+                stepIndex={stepIndex}
+                callback={handleJoyrideCallback}
+                continuous={true}
+              />
+            )}
+            <Calendar workoutDays={workoutDays} setCurrentDay={setCurrentDay} currentDay={currentDay}/>
             <div className={styles.exercises}>
-                { currentDay ? 
-                    currentDay?.exercises ? (
-                    currentDay.exercises.map((exercise, index) => {
-                        console.log('Rendering <EX/>',exercise);
-                        if(index == 0 && !currentDay.complete){
-                            return (
-                                <>
-                                    <Warmups warmUps={warmUps} showWarmups={showWarmups}/>
-                                    <Exercise saveExercise={saveExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
-                                </>
-                            )
-                        }
-                        return (
-                            <Exercise saveExercise={saveExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
-                        )
-                    })
-                    ) : (
-                        <Blank currentDay={currentDay}/>
-                    ) : 'Pick a day'
+                { currentDay 
+                    ? currentDay?.exercises.length != 0 
+                            ?   
+                                currentDay.exercises.map((exercise, index) => {
+                                    if(index == 0 && !currentDay.complete){
+                                        return (
+                                            <>
+                                                <Warmups warmUps={warmUps} showWarmups={showWarmups}/>
+                                                <Exercise saveExercise={saveRepsToExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
+                                            </>
+                                        )
+                                    }
+                                    return (
+                                        <Exercise saveExercise={saveRepsToExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
+                                    )
+                                })
+                            : (
+                                <Blank currentDay={currentDay} setCurrentDay={setCurrentDay} updateWorkoutDay={updateWorkoutDay}/>
+                            ) 
+                    : ''
                 } 
             </div>
             { currentDay ?
@@ -248,32 +362,31 @@ export default function Planner(){
 }
 
 interface WeakPointsProps {
-    currentDay: Workout;
-    weakPoints: WeakPoint[];
+    currentDay: Workout | null;
+    weakPoints: WeakPoint[] | null;
     styles: { [key: string]: string }; 
-    setWeakPointSelection: Dispatch<SetStateAction<any>>;
+    setWeakPointSelection: any;
 }
 
 function WeakPoints({ styles, currentDay, weakPoints, setWeakPointSelection }: WeakPointsProps) {
-    const dialogRef = useRef(null);
+    const dialogRef = useRef<HTMLDialogElement | null>(null);
     const [selectedWeakPoint, setSelectedWeakPoint] = useState<WeakPoint | null>(null);
-    const [selectedExerciseList, setSelectedExerciseList] = useState<Array<string>>([]);
-    console.log('selectedWeakPoint',selectedWeakPoint);
-    console.log('selectedExerciseList',selectedExerciseList);
-    console.log(selectedExerciseList.includes('Cuffed Behind-The-Back Lateral Raise'));
+    const [selectedExerciseList, setSelectedExerciseList] = useState<Array<string | string[]>>([]);
 
     useEffect(() => {
         if (currentDay && currentDay?.exercises && dialogRef.current) {
             currentDay.exercises.forEach((ex: any) => {
                 if (ex.primary.toLowerCase().includes("weak point") && ex.sub1 === ex.sub2) {
-                    dialogRef.current.show();
+                    if(dialogRef.current){
+                        dialogRef.current.show();
+                    }
                 }
             });
         } 
     }, [currentDay]);
 
     const handleWeakPointChange = (selectedPoint: string) => {
-        if (!selectedPoint) {
+        if (!selectedPoint || !weakPoints) {
             return;
         }
         const weakPoint = weakPoints.find(point => point.point === selectedPoint);
@@ -283,10 +396,6 @@ function WeakPoints({ styles, currentDay, weakPoints, setWeakPointSelection }: W
     };
 
     const handleExerciseSelect = (exercise: Array<string> | string) => {
-        console.log('handleExerciseSelect',exercise)
-        if(exercise == 'Pick one of the options above. Do not do all of them in one day!'){
-            return;
-        }
         setSelectedExerciseList(prevList => {
             if (prevList.includes(exercise)) {
                 // If already selected, remove the exercise
@@ -304,7 +413,9 @@ function WeakPoints({ styles, currentDay, weakPoints, setWeakPointSelection }: W
     const setWeakPointExercise = () => {
         if (selectedExerciseList.length === 2) {
             setWeakPointSelection(selectedExerciseList);
-            dialogRef.current.close();
+            if(dialogRef.current){
+                dialogRef.current.close();
+            }
             // Handle the selected exercises (e.g., save to state or API)
         } else {
             alert("Please select exactly two exercises.");
@@ -315,10 +426,14 @@ function WeakPoints({ styles, currentDay, weakPoints, setWeakPointSelection }: W
         return null;
     }
 
-    console.log(weakPoints)
     return (
         <dialog className={styles.dialog} ref={dialogRef}>
             <div className="wrapper">
+                <button onClick={()=>{
+                    if(dialogRef.current){
+                        dialogRef.current.close()
+                    }
+                }}>X</button>
                 <h2>Select a Weak Point</h2>
                 <select 
                     onChange={(e) => handleWeakPointChange(e.target.value)} 
@@ -380,3 +495,30 @@ function WeakPoints({ styles, currentDay, weakPoints, setWeakPointSelection }: W
     );
 }
 
+function processWorkoutDays(workoutDays: Array<Workout>){
+    const updatedWorkoutDays = [...workoutDays];
+
+    for (let i = 1; i < updatedWorkoutDays.length - 1; i++) {
+        const prevDay = updatedWorkoutDays[i - 1];
+        const currentDay = updatedWorkoutDays[i];
+        const nextDay = updatedWorkoutDays[i + 1];
+        if (!currentDay.complete && prevDay.complete && nextDay.complete && currentDay.exercises.length == 0) {
+            updatedWorkoutDays[i].complete = true;
+        }
+    }
+
+    return updatedWorkoutDays;
+}
+
+function saveStatetoLocalStorage(workoutDays: Array<Workout>){
+    console.log('saveStatetoLocalStorage');
+    const sheetDataString = window.localStorage.getItem('sheetData');
+    if (sheetDataString) {
+        const sheetData: sheetData = JSON.parse(sheetDataString);
+        const localWorkoutDays = sheetData.workoutDays;
+        sheetData.workoutDays = workoutDays;
+        window.localStorage.setItem('sheetData',JSON.stringify(sheetData));
+        return;
+    }
+    alert("Error: No local sheet found in memory?");
+}
