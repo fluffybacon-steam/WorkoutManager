@@ -266,7 +266,7 @@ export default function Planner(){
     const [weakPointSelection, setWeakPointSelection] = useState<Array<string> | null>(null);
     
     const [currentDay, setCurrentDay] = useState<Workout | null>(null);
-    const currentDayRef = useRef(null);
+    const currentDayRef = useRef<HTMLElement | null>(null);
     const [hash, setHash] = useState('');
     const [showWarmups, setShowWarmups] = useState<Boolean>(false);
 
@@ -388,7 +388,8 @@ export default function Planner(){
         //If no currentDay set, find one
         //Don't run when demo is happening
         if(workoutDays != null && currentDay == null && !run){
-            setCurrentDay(findCurrentDay(hash, workoutDays));
+            const foundDay = findCurrentDay(hash, workoutDays)
+            setCurrentDay(foundDay);
         }
     },[workoutDays])
 
@@ -467,6 +468,7 @@ export default function Planner(){
                 stepIndex={stepIndex}
                 callback={handleJoyrideCallback}
                 continuous={true}
+                disableScrollParentFix={true}
               />
             )}
             <Calendar workoutDays={workoutDays} setCurrentDay={setCurrentDay} currentDay={currentDay} currentDayRef={currentDayRef}/>
@@ -635,7 +637,7 @@ function WeakPoints({ styles, currentDay, weakPoints, setWeakPointSelection }: W
     );
 }
 
-function processWorkoutDays(workoutDays: Array<Workout>){
+function processWorkoutDays(workoutDays: Array<Workout>): Array<Workout>{
     const updatedWorkoutDays = [...workoutDays];
 
     for (let i = 1; i < updatedWorkoutDays.length - 1; i++) {
@@ -650,7 +652,7 @@ function processWorkoutDays(workoutDays: Array<Workout>){
     return updatedWorkoutDays;
 }
 
-function saveStatetoLocalStorage(workoutDays: Array<Workout>){
+function saveStatetoLocalStorage(workoutDays: Array<Workout>): void{
     const sheetDataString = window.localStorage.getItem('sheetData');
     if (sheetDataString) {
         const sheetData: sheetData = JSON.parse(sheetDataString);
@@ -662,7 +664,7 @@ function saveStatetoLocalStorage(workoutDays: Array<Workout>){
     alert("Error: No local sheet found in memory?");
 }
 
-function findCurrentDay(hash: string,workoutDays: Array<Workout>){
+function findCurrentDay(hash: string,workoutDays: Array<Workout>): Workout | null{
     console.log('findCurrentDay');
     const dayFromUrl: RegExpMatchArray | null = hash.match(/\d+/);
     if (dayFromUrl) {
@@ -690,4 +692,5 @@ function findCurrentDay(hash: string,workoutDays: Array<Workout>){
             }
         }
     }
+    return null
 }

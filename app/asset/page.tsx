@@ -70,7 +70,7 @@ export default function AssetPage() {
             </div>
             <button className='home-button'>Load workouts from local memory</button>
             <button className='home-button' disabled>Load workouts from local memory</button>
-            <Calendar workoutDays={WorkoutDays} setCurrentDay={function(){}} currentDay={WorkoutDays[2]}/>
+            <Calendar workoutDays={WorkoutDays} setCurrentDay={function(){}} currentDay={WorkoutDays[2]}  currentDayRef={null}/>
             <Exercise saveExercise={function(){}} exercise={exercise} />
         </div>
     )

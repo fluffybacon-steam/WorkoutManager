@@ -26,7 +26,7 @@ const steps = [
     ),
     disableBeacon: true,
     disableOverlay: true,
-    placement: 'top-center' as const,
+    placement: 'top' as const,
   },
   {
     title:'Follow these instructions',
