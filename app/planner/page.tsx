@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import {Warmups} from '../components/Warmups';
 import { Calendar } from '../components/Calendar';
@@ -8,10 +8,11 @@ import {Blank} from '../components/Blank';
 import styles from './page.module.scss';
 import Joyride from 'react-joyride';
 import { CallBackProps, ACTIONS, EVENTS, STATUS, ORIGIN } from 'react-joyride';
-import {popup} from '../utils/helpers';
+import {popup,isLoading} from '../utils/helpers';
 
 const steps = [
   {
+    hideCloseButton: true,
     title:'The Planner',
     target: 'body',
     content: (
@@ -21,12 +22,13 @@ const steps = [
         <ol style={{textAlign:'left',margin:'10px'}}>
             <li><b>Calendar Slider</b>
                 <ul>
-                    <li>Shows all the workout days in your programs</li>
+                    <li>Shows all the workout days in your program</li>
                 </ul>
             </li>
+            <br/>
             <li><b>Exercises Cards</b>
                 <ul>
-                    <li>Below the calendar, each exercise is shown as a <i>card</i> of information</li>
+                    <li>These cards show up directly below the selected calendar day. Each card provides information as well as fields to log your sets</li>
                 </ul>
             </li>
         </ol>
@@ -47,16 +49,32 @@ const steps = [
         },
     },
     target: '#workout_0',
-    content: "Select your workout. Let’s select the first day of the program",
+    content: "To get started, select your workout. The first day is a good place to start our program",
     placement: 'top' as const,
-    disableScrolling:true
   },
   {
+    disableOverlayClose: true,
     target: '.day.current',
-    content: 'Your exercises for the day will populate below',
+    content: 'Once selected, your exercises for the day will populate below',
     placement: 'bottom' as const,
   },
   {
+    disableBeacon: true,
+    disableOverlayClose: true,
+    spotlightClicks: true,
+    hideCloseButton: true,
+    hideFooter: false,
+    target: 'div:has(.drag-handle):first-child',
+    content: 'Expand the card to view it',
+    placement: 'top-end' as const,
+    styles: {
+        options: {
+            zIndex: 10000,
+        },
+    },
+  },
+  {
+    disableOverlayClose: true,
     target: 'div:has(.drag-handle):first-child .drag-handle',
     content: 'Once an exercise has been completed, you can drag it off the screen to save the sets',
     placement: 'top-end' as const,
@@ -67,17 +85,157 @@ const steps = [
     },
   },
   {
+    disableOverlayClose: true,
     target: 'header label:nth-child(4)',
-    content: "Do not forget to occasionally back up your data to the spreadsheet for safe keeping",
+    content: "Do not forget to occasionally back up your data to your Google Spreadsheet for safe keeping",
     placement: 'right' as const,
   },
   {
+    disableOverlayClose: true,
     target: 'body',
     content: (
         <p>That concludes the tour.<br/>May your gains be great!</p>
     ),
     placement: 'center' as const,
   },
+]
+
+const demoWorkoutDays: Array<Workout> = [
+    {
+        key: 0,
+        day:"Shoulders Day",
+        complete:false,
+        exercises:[
+            {
+                primary : "Pushups",
+                sub1 : "Substitute Exercise #2",
+                sub2 : "Substitute Exercise #2",
+                lastSetTech : "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                warmupSets : "1-2",
+                workingSets : 3,
+                repRange : "12,10,8",
+                rowOrigin : 10000,
+                recordedSets : [null,null,null,null],
+                earlySetRpe : "~7-8",
+                lastSetRpe : "~8-9",
+                rest : "~2-3 min",
+                notes : "Duis nulla justo, elementum sit amet elementum sit amet, rhoncus a nibh. Nunc pretium purus et ipsum lacinia viverra",
+                primary_vid : "https ://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                sub1_vid : "",
+                sub2_vid : ""
+            },
+            {
+                primary : "Backflips",
+                sub1 : "Substitute Exercise #2",
+                sub2 : "Substitute Exercise #2",
+                lastSetTech : "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                warmupSets : "1-2",
+                workingSets : 3,
+                repRange : "12,10,8",
+                rowOrigin : 10000,
+                recordedSets : [null,null,null,null],
+                earlySetRpe : "~8-9",
+                lastSetRpe : "10",
+                rest : "~1-2 min",
+                notes : "Duis nulla justo, elementum sit amet elementum sit amet, rhoncus a nibh. Nunc pretium purus et ipsum lacinia viverra",
+                primary_vid : "https ://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                sub1_vid : "",
+                sub2_vid : ""
+            }
+        ]
+    },
+    {
+        key: 1,
+        day:"Knees Day",
+        complete:false,
+        exercises:[
+            {
+                primary : "Car Flips",
+                sub1 : "Substitute Exercise #2",
+                sub2 : "Substitute Exercise #2",
+                lastSetTech : "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                warmupSets : "1-2",
+                workingSets : 3,
+                repRange : "12,10,8",
+                rowOrigin : 10000,
+                recordedSets : [null,null,null,null],
+                earlySetRpe : "~7-8",
+                lastSetRpe : "~8-9",
+                rest : "~2-3 min",
+                notes : "Duis nulla justo, elementum sit amet elementum sit amet, rhoncus a nibh. Nunc pretium purus et ipsum lacinia viverra",
+                primary_vid : "https ://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                sub1_vid : "",
+                sub2_vid : ""
+            },
+            {
+                primary : "Knee Crushers",
+                sub1 : "Substitute Exercise #2",
+                sub2 : "Substitute Exercise #2",
+                lastSetTech : "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                warmupSets : "1-2",
+                workingSets : 3,
+                repRange : "12,10,8",
+                rowOrigin : 10000,
+                recordedSets : [null,null,null,null],
+                earlySetRpe : "~8-9",
+                lastSetRpe : "10",
+                rest : "~1-2 min",
+                notes : "Duis nulla justo, elementum sit amet elementum sit amet, rhoncus a nibh. Nunc pretium purus et ipsum lacinia viverra",
+                primary_vid : "https ://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                sub1_vid : "",
+                sub2_vid : ""
+            }
+        ]
+    },
+    {
+        key: 2,
+        day:"Toes Day",
+        complete:false,
+        exercises:[
+            {
+                primary : "Big Toe Press",
+                sub1 : "Substitute Exercise #2",
+                sub2 : "Substitute Exercise #2",
+                lastSetTech : "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                warmupSets : "1-2",
+                workingSets : 3,
+                repRange : "12,10,8",
+                rowOrigin : 10000,
+                recordedSets : [null,null,null,null],
+                earlySetRpe : "~7-8",
+                lastSetRpe : "~8-9",
+                rest : "~2-3 min",
+                notes : "Duis nulla justo, elementum sit amet elementum sit amet, rhoncus a nibh. Nunc pretium purus et ipsum lacinia viverra",
+                primary_vid : "https ://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                sub1_vid : "",
+                sub2_vid : ""
+            },
+            {
+                primary : "Pinky Toe Curl",
+                sub1 : "Substitute Exercise #2",
+                sub2 : "Substitute Exercise #2",
+                lastSetTech : "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                warmupSets : "1-2",
+                workingSets : 3,
+                repRange : "12,10,8",
+                rowOrigin : 10000,
+                recordedSets : [null,null,null,null],
+                earlySetRpe : "~8-9",
+                lastSetRpe : "10",
+                rest : "~1-2 min",
+                notes : "Duis nulla justo, elementum sit amet elementum sit amet, rhoncus a nibh. Nunc pretium purus et ipsum lacinia viverra",
+                primary_vid : "https ://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                sub1_vid : "",
+                sub2_vid : ""
+            }
+        ]
+    },
+    {
+        key: 3,
+        day:"Rest Day",
+        complete:false,
+        exercises:[]
+    }
 ]
 
 interface WeakPoint {
@@ -108,6 +266,7 @@ export default function Planner(){
     const [weakPointSelection, setWeakPointSelection] = useState<Array<string> | null>(null);
     
     const [currentDay, setCurrentDay] = useState<Workout | null>(null);
+    const currentDayRef = useRef(null);
     const [hash, setHash] = useState('');
     const [showWarmups, setShowWarmups] = useState<Boolean>(false);
 
@@ -116,13 +275,15 @@ export default function Planner(){
     const [stepIndex, setStepIndex] = useState(0);
 
     const handleJoyrideCallback = (data: CallBackProps) => {
-        const { action, index, origin, status, type } = data;
+        const { action, index, status, type } = data;
+        console.log(action, index, status,type);
     
         if (status == 'finished') {
           window.localStorage.setItem('demoPlannerComplete','1');
         }
     
         if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+            console.log(EVENTS);
           // Update state to advance the tour
           setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
         } else if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
@@ -162,44 +323,36 @@ export default function Planner(){
     // Look for saved sheetData; else go back to home;
     useEffect(() => {
         if(typeof window !== 'undefined' && (!workoutDays && !warmUps && !weakPoints)){
-            const sheetDataString = window.localStorage.getItem('sheetData');
-            let sheetData: sheetData;
-            if (sheetDataString) {
-                sheetData = JSON.parse(sheetDataString);
-                assignWorkoutData(sheetData);
-            } else {
-                router.push('/');
-            }
-        }
-
-        //Set initial currentDay
-        const dayFromUrl: RegExpMatchArray | null = hash.match(/\d+/);
-        if (dayFromUrl && workoutDays) {
-            const dayIndex: number = parseInt(dayFromUrl[0], 10); // Convert the string to a number
-            if (!isNaN(dayIndex) && dayIndex >= 0 && dayIndex < workoutDays.length) { // Ensure it's a valid index
-                setCurrentDay(workoutDays[dayIndex]);
-            }
-        } else if (!currentDay && workoutDays?.length) {
-            for (let i = 0; i < workoutDays.length; i++) {
-                const workout = workoutDays[i];
-                if (!workout.complete) {
-                    //check to see if its a rest day
-                    if(workout.exercises.length == 0 && workoutDays[i+1].complete){
-                        continue
-                    }
-                    setCurrentDay(workout);
-                    break; 
+            isLoading(false);
+            const demo = window.localStorage.getItem('demoPlannerComplete');
+            if (demo != "1") {
+                //Play onboarding?
+                console.log("play onboarding");
+                if(workoutDays == null){
+                    setWorkoutDays(demoWorkoutDays);
                 }
-            }
+                setFirstTime(true);
+                setRun(true);
+            } else {
+                setFirstTime(false);
+
+
+                //Loading workout plan
+                const sheetDataString = window.localStorage.getItem('sheetData');
+                let sheetData: sheetData;
+                if (sheetDataString) {
+                    sheetData = JSON.parse(sheetDataString);
+                    assignWorkoutData(sheetData);
+                }
+                if(!sheetDataString && !workoutDays) {
+                    console.log(workoutDays);
+                    popup("Error: No sheet data detected. <br/> Return to the home page and login",true);
+                    return
+                }
+        
+            }     
         }
 
-        //Play onboarding?
-        const demo = window.localStorage.getItem('demoPlannerComplete');
-        if (demo != "1") {
-            setFirstTime(true); // If demo is complete, firstTime should be false
-        } else {
-            setFirstTime(false); // If no demoComplete, set firstTime to true
-        }
     }, []);
 
     useEffect(()=>{
@@ -220,21 +373,24 @@ export default function Planner(){
                 setShowWarmups(false);
             }
         }
+        if(currentDayRef.current){
+            console.log(currentDay);
+            currentDayRef.current.scrollIntoView();
+        }
     }, [currentDay]);
 
     useEffect(()=>{
+        //Everytime workoutDay changes, save changes to local Storage
         if(workoutDays != null && !initializing){
             saveStatetoLocalStorage(workoutDays);
         }
-    },[workoutDays])
-
-    useEffect(()=>{
-        if(initializing == false){
-            if(firstTime){
-                setRun(true);
-            }
+        
+        //If no currentDay set, find one
+        //Don't run when demo is happening
+        if(workoutDays != null && currentDay == null && !run){
+            setCurrentDay(findCurrentDay(hash, workoutDays));
         }
-    },[initializing])
+    },[workoutDays])
 
     //save changed day to workouts/planner array
     const updateWorkoutDay = (day: Workout) =>{
@@ -273,7 +429,7 @@ export default function Planner(){
     const saveRepsToExercise = (reps: Array<number>, lbs: Array<number>, rowI: number, day: Workout | null = currentDay) => {
         const key = day?.key;
         if(typeof key == "undefined" || !workoutDays){
-            popup("Error: Unable to save exercise due to invalid key or workoutDays");
+            popup("Error: Unable to save exercise due to invalid key or workoutDays",true);
             return
         }
         let tempWorkDays = workoutDays;
@@ -281,17 +437,23 @@ export default function Planner(){
 
         const dayToUpdate = tempWorkDays[key];
         if (dayToUpdate) {
-            dayToUpdate.exercises = dayToUpdate.exercises.map(exercise => {
+            let lastExercise_updated_key;
+            dayToUpdate.exercises = dayToUpdate.exercises.map((exercise,index) => {
                 if (exercise.rowOrigin === rowI) {
+                    lastExercise_updated_key = index;
                     return { ...exercise, recordedSets: recordedSets };
                 }
                 return exercise;
             });
-            dayToUpdate.complete = true;
             updateWorkoutDay(dayToUpdate);
-            popup("Exercise successfuly saved");
+            if(lastExercise_updated_key === (dayToUpdate.exercises.length - 1)){
+                dayToUpdate.complete = true;
+                popup("Workout complete. Enjoy today!");
+            } else {
+                popup("Exercise successfuly saved");
+            }
         } else {
-            popup("Error: Unable to save exercise");
+            popup("Error: Unable to save exercise",true);
         }
     }
 
@@ -305,10 +467,9 @@ export default function Planner(){
                 stepIndex={stepIndex}
                 callback={handleJoyrideCallback}
                 continuous={true}
-                disableScrolling={true}
               />
             )}
-            <Calendar workoutDays={workoutDays} setCurrentDay={setCurrentDay} currentDay={currentDay}/>
+            <Calendar workoutDays={workoutDays} setCurrentDay={setCurrentDay} currentDay={currentDay} currentDayRef={currentDayRef}/>
             <div className={styles.exercises}>
                 { currentDay 
                     ? currentDay?.exercises.length != 0 
@@ -316,18 +477,18 @@ export default function Planner(){
                                 currentDay.exercises.map((exercise, index) => {
                                     if(index == 0 && !currentDay.complete){
                                         return (
-                                            <>
-                                                <Warmups warmUps={warmUps} showWarmups={showWarmups}/>
-                                                <Exercise saveExercise={saveRepsToExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
-                                            </>
+                                            <Fragment key={currentDay.day + '-fragment'}>
+                                                <Warmups key={currentDay.day+'warmup'} warmUps={warmUps} showWarmups={showWarmups}/>
+                                                <Exercise key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} saveExercise={saveRepsToExercise} exercise={exercise}/>
+                                            </Fragment>
                                         )
                                     }
                                     return (
-                                        <Exercise saveExercise={saveRepsToExercise} key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} exercise={exercise}/>
+                                        <Exercise key={(exercise.rowOrigin) ? exercise.rowOrigin + exercise.primary : index + exercise.primary} saveExercise={saveRepsToExercise} exercise={exercise}/>
                                     )
                                 })
                             : (
-                                <Blank currentDay={currentDay} setCurrentDay={setCurrentDay} updateWorkoutDay={updateWorkoutDay}/>
+                                <Blank key={currentDay.day} currentDay={currentDay} setCurrentDay={setCurrentDay} updateWorkoutDay={updateWorkoutDay}/>
                             ) 
                     : ''
                 } 
@@ -499,4 +660,34 @@ function saveStatetoLocalStorage(workoutDays: Array<Workout>){
         return;
     }
     alert("Error: No local sheet found in memory?");
+}
+
+function findCurrentDay(hash: string,workoutDays: Array<Workout>){
+    console.log('findCurrentDay');
+    const dayFromUrl: RegExpMatchArray | null = hash.match(/\d+/);
+    if (dayFromUrl) {
+        console.log('dayFromUrl',dayFromUrl)
+        const dayIndex: number = parseInt(dayFromUrl[0], 10); // Convert the string to a number
+        if (!isNaN(dayIndex) && dayIndex >= 0 && dayIndex < workoutDays.length) { // Ensure it's a valid index
+            console.log('dayFromUrl',workoutDays[dayIndex],dayIndex,hash);
+            if (!workoutDays[dayIndex].complete){
+                return workoutDays[dayIndex];
+            } else {
+                return findCurrentDay('',workoutDays);
+            }
+        }
+    } else {
+        console.log('find currentDay');
+        for (let i = 0; i < workoutDays.length; i++) {
+            const workout: Workout = workoutDays[i];
+            if (!workout.complete) {
+                const nextWorkout: Workout =  workoutDays[i+1];
+                //check to see if its a rest day
+                if(workout.exercises.length == 0 && nextWorkout.complete){
+                    continue
+                }
+                return workout;
+            }
+        }
+    }
 }

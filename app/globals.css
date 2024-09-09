@@ -129,14 +129,14 @@ ol,ul{
 }
 
 .popup{
+  --padding: 1em;
+  --border-bg: conic-gradient(var(--fontColor),var(--accentColor),var(--fontColor),var( --accentColor),var(--fontColor));
+  --border-size: 0.25em;
   text-align: center;
-  background: var(--accentColor);
   color:var(--fontColor);
-  border:2px solid var(--fontColor);
-  border-radius: 20px;
+  font-size:0.75rem;
   width: clamp(250px, 80vw, 400px);
   height: fit-content;
-  padding: 10px;
   margin: auto;
   position: fixed;
   inset: 0 0 0 0;
@@ -150,16 +150,51 @@ ol,ul{
   &:empty{
     display:none;
   }
+  overflow: hidden;
+  padding: calc(var(--padding) + var(--border-size));
+  border-radius: var(--border-radius);
+}
+.popup::before{
+  content: '';
+  display: block;
+  background: var(--border-bg);
+  width: 200%;
+  aspect-ratio: 1 / 1; 
+  height: auto;
+  position: absolute;
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%);
+  border-radius: 100%; 
+  z-index: -2;
+  animation: popupSpin 2000ms linear infinite;
+}
+.popup::after {
+  content: '';
+  position: absolute;
+  inset: var(--border-size);
+  background: var(--body-bg);
+  z-index: -1;
+  border-radius: calc(var(--border-radius) - var(--border-size));
+}
+
+@keyframes popupSpin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to   {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 @keyframes openPopup {
   from {
     opacity: 0;
-    translate:0px -25px;
+    translate:0px 25px;
   }
   to {
     opacity: 1;
-    translate:0px 0px;
+    translate:0px -25px;
   }
 }
 
@@ -170,7 +205,7 @@ ol,ul{
   }
   to {
     opacity: 0;
-    translate:0px 0px;
+    translate:0px 25px;
   }
 }
 

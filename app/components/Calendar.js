@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './calendar.module.scss';
 
-export function Calendar({workoutDays, setCurrentDay, currentDay}){
+export function Calendar({workoutDays, setCurrentDay, currentDay, currentDayRef}){
     const router = useRouter();
     const calRef = useRef(null)
 
@@ -28,7 +28,7 @@ export function Calendar({workoutDays, setCurrentDay, currentDay}){
             {workoutDays.map((day,index)=>{
                 const text = (day.day) ? day.day : day;
                 return (
-                    <button 
+                    <button ref={(day == currentDay) ? currentDayRef : null}
                         key={day.key} 
                         data-complete={day?.complete}
                         onClick={()=>{selectDay(index,day.key);}} 

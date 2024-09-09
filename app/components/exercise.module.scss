@@ -24,6 +24,7 @@
             display:flex;
             flex-wrap: wrap;
             color:var(--cardFont);
+            overflow:hidden;
         }
         .drag-handle{
             grid-row:1/2;
@@ -54,7 +55,7 @@
                     font-size:1.4em;
                 } 
                 .link{
-                    display: inline-block;
+                    display: none;
                     padding:5px;
                     svg{
                         height:auto;
@@ -66,6 +67,7 @@
                 }
             }
             .selectors{
+                opacity: 0;
                 grid-area:2/1/2/1;
                 display: flex;
                 align-items: center;
@@ -90,6 +92,18 @@
                     border-right-color:hsl(from var(--activeExercise) h s 50%);
                     border-left-color:var(--activeExercise);
                 }
+            }
+        }
+        .expand{
+            background:none;
+            border:none;
+            color:var(--fontColor);
+            height:fit-content;
+            svg.open{
+                display:block;
+            }
+            svg.close{
+                display:none;
             }
         }
         .rest-time{
@@ -255,6 +269,26 @@
                         display: none;
                     }
                 }
+            }
+        }
+    }
+}
+.card[expanded=true]{
+    :global{
+        .expand {
+            svg.open{
+                display:none;
+            }
+            svg.close{
+                display:block;
+            }
+        }
+        .movements {
+            .selectors{
+                opacity: 1;
+            }
+            svg{
+                display:inline-block;
             }
         }
     }

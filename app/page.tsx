@@ -9,6 +9,7 @@ import {CallBackProps, ACTIONS, EVENTS, STATUS, ORIGIN } from 'react-joyride';
 
 const steps = [
   {
+    hideCloseButton: true,
     title: "Welcome to Workout Planner",
     target: 'body',
     content: (
@@ -24,7 +25,8 @@ const steps = [
       </>
     ),
     disableBeacon: true,
-    placement: 'center' as const,
+    disableOverlay: true,
+    placement: 'top-center' as const,
   },
   {
     title:'Follow these instructions',
@@ -42,18 +44,27 @@ const steps = [
     placement: 'auto' as const,
   },
   {
-    target: 'body button:nth-child(7)',
+    target: 'body button:nth-child(8)',
     content: (
       <p style={{textWrap:'pretty'}}>Click here to login to Google and retrieve the program sheet</p>
     ),
     placement: 'auto' as const,
   },
   {
-    target: 'body button:nth-child(6)',
+    target: 'body button:nth-child(7)',
     content: (
       <p style={{textWrap:'pretty'}}>After your first login, your program will be retained in memory and can be loaded from here (no internet required)</p>
     ),
     placement: 'auto' as const,
+  },
+  { 
+    target: 'header > label.planner',
+    content: (
+      <p style={{textWrap:'pretty'}}>You can either load your spreadsheet on this page now, or continue the demo on the Planner page</p>
+    ),
+    // disableOverlay: true,
+    placementBeacon: 'top' as const,
+    placement: 'bottom-start' as const,
   },
 ]
 
@@ -124,11 +135,17 @@ export default function Home() {
       }
     };
 
+    const clearCacheOAuth = () =>{
+      window.localStorage.removeItem("ga_credentials");
+      popup("Cleared saved OAuth credentials");
+    }
+
     const clearCache = () =>{
       window.localStorage.removeItem("ga_credentials");
       window.localStorage.removeItem("sheetData");
       window.localStorage.removeItem("sheetUrl");
       window.localStorage.removeItem("demoComplete");
+      window.localStorage.removeItem("demoPlannerComplete");
       setUserSheetUrl('');
       setSheetData('');
       popup("Cleared data cache");
@@ -164,6 +181,7 @@ export default function Home() {
       } else if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
         // You need to set our running state to false, so we can restart if we click start again.
         setRun(false);
+        window.localStorage.setItem('demoComplete','1');
       }
     };
 
@@ -179,7 +197,8 @@ export default function Home() {
               />
             )}
             <h2>Login into Google</h2>
-            <h3>Instructions:</h3>
+            <br/>
+            <h3>First Time Setup Instructions:</h3>
               <ol>
                 <li>Upload your worksheet spreadsheet to your Google Drive.</li>
                 <li>Save spreadsheet as a Google Sheet. 
@@ -199,7 +218,8 @@ export default function Home() {
             />
             <button disabled={(sheetData == '')} onClick={()=>{router.push('/planner');}}>Load workouts from local memory</button>
             <button disabled={(userSheetUrl == '')} onClick={fetchAuth}>Load workouts from sheet (overwrites local data)</button>
-            <button onClick={clearCache}>Clear cached data</button>
+            <button onClick={clearCacheOAuth}>Clear OAuth Login</button>
+            <button onClick={clearCache}>Clear Everything ⚠️</button>
         </div>
     );
 }

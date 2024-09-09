@@ -1,4 +1,4 @@
-export function popup(message: string){
+export function popup(message: string, error: boolean = false){
     if (typeof window === 'undefined') {
         return; // If window isn't defined, it means we are on the server, so do nothing
     }
@@ -9,6 +9,11 @@ export function popup(message: string){
     } 
     popup.innerHTML = message;
     popup.classList.add('active');
+    if(error){
+        popup.style.setProperty("--accentColor",'red');
+    } else {
+        popup.style.setProperty("--accentColor",'');
+    }
     setTimeout(()=>{
         popup.classList.remove('active');
     },5000);

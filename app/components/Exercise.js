@@ -26,6 +26,7 @@ export function Exercise({saveExercise, exercise}){
         })
         animation.to(cardRef.current,{
             height: '0px',
+            margin: '0',
             zIndex: '-100',
             duration:0.5
         }, '<=0.25');
@@ -37,22 +38,23 @@ export function Exercise({saveExercise, exercise}){
             trigger:  cardRef.current.querySelector('.drag-handle'),
             onDrag: function(e){
                 const leftPos = parseFloat(cardRef.current.style.left);
-                if(leftPos <= 0.9*offset){
-                    if(!animation.isActive()){
-                        saveExercise(reps,lbs,exercise.rowOrigin);
-                        animation.play();
-                    }
+                if(leftPos <= 0.6*offset){
+                    this.SlideOffScreen = true;
                 }   
             },
             onDragEnd: function () {
-                const leftPos = parseFloat(cardRef.current.style.left);
-                if(leftPos > 0.90*offset){
+                if(this.SlideOffScreen){
+                    saveExercise(reps,lbs,exercise.rowOrigin);
+                    animation.play();
+                } else {
                     gsap.to(cardRef.current,{
                         left:0
                     })
                 }
             },
         });
+
+        collapseCard(cardRef);
 
     },[cardRef])
 
@@ -79,6 +81,10 @@ export function Exercise({saveExercise, exercise}){
         <div className={styles.card} ref={cardRef}>
             <div className="wrapper">
                 <Movements exercise={exercise} />
+                <button className="expand" onClick={()=>{toggleCard(cardRef)}}>
+                    <svg className="open" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-80 240-320l57-57 183 183 183-183 57 57L480-80ZM298-584l-58-56 240-240 240 240-58 56-182-182-182 182Z"/></svg>
+                    <svg className="close" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m296-80-56-56 240-240 240 240-56 56-184-184L296-80Zm184-504L240-824l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+                </button>
                 <div className="rest-time">
                     <span>{(timerDuration) ? convertTime(timerDuration,true) : exercise.rest}</span>
                     {restMinMax && (
@@ -328,6 +334,37 @@ function convertRPEtoNum(value) {
         return (min + max) / 2;
     } else {
         return parseFloat(value);
+    }
+}
+
+function collapseCard(ref){
+    if(ref?.current){
+        const card = ref.current;
+        const trueHeight = card.offsetHeight;
+        card.setAttribute('data-height',trueHeight);
+        const collapseHeight = card.querySelector('.movements').offsetHeight;
+        card.style.height = collapseHeight+'px';
+    }
+}
+
+
+function toggleCard(ref){
+    if(ref?.current){
+        const card = ref.current;
+        if(card.getAttribute('expanded')){
+            //Collapse
+            const collapseHeight = card.querySelector('.movements').offsetHeight + 10;
+            gsap.to(card,{
+                height: collapseHeight+'px'
+            });
+            card.removeAttribute('expanded');
+        } else {
+            //Expand
+            gsap.to(card,{
+                height: card.dataset.height+'px'
+            });
+            card.setAttribute('expanded',true);
+        }
     }
 }
 
