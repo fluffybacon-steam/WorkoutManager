@@ -14,7 +14,6 @@ export default function Navbar() {
         const savedCredentialsStr = window.localStorage.getItem("ga_credentials");
         const sheetDataStr = window.localStorage.getItem("sheetData");
         const sheetUrl = window.localStorage.getItem("sheetUrl");
-        let popup_message = "Error: No OAuth2 credentials or Sheet found";
         if(savedCredentialsStr && sheetUrl){
             const credentials = await axios.post(`/api/fetchAuth`, 
                 { savedCredentialsStr}
@@ -28,23 +27,22 @@ export default function Navbar() {
                 });
             if(credentials){
                 window.localStorage.setItem("ga_credentials",JSON.stringify(credentials));
-                popup_message = await axios.post(`/api/saveData`, { 
+                axios.post(`/api/saveData`, { 
                         credentials : credentials,
                         sheetDataStr: sheetDataStr,
                         sheetUrl: sheetUrl,
                     }).then((res)=>{
-                        return "Successfully saved local data to Google Spreadsheet";
+                        popup("Successfully saved local data to Google Spreadsheet");
                     }).catch((err)=>{
                         console.log(err);
-                        return "Error: Unable to save local data to Google Spreadsheet";
+                        popup("Error: Unable to save local data to Google Spreadsheet",true);
                     });
             } else {
-                popup_message = "Error: OAuth2 credentials failed";
+                popup("Error: OAuth2 credentials failed", true);
             }
         } else {
-            popup_message = "Error: Could not save data as either OAuth2 credentials or sheet url are not set";
+            popup("Error: Could not save data as either OAuth2 credentials or sheet url are not set", true);
         }
-        popup(popup_message);
         isLoading(false);
     }
 

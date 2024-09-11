@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from './navbar';
 import ColorPalette from './components/colorPalette';
+import { Analytics } from "@vercel/analytics/react"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,6 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Analytics/>
       <body className={inter.className}>
         <div id="loader" style={{display: 'none'}}>
           <div className="spinner"></div>

@@ -108,11 +108,15 @@ const ColorPalette = () => {
     const darkThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     if(darkThemeQuery?.matches == true){
         setPalette(palettesDark);
+        console.log("dark pal");
+    } else {
+        console.log("light pal");
     }
     const userPreferenceJSON = window.localStorage.getItem('color-palette');
     const userPreference = (userPreferenceJSON) ? JSON.parse(userPreferenceJSON) : false;
     console.log(userPreference,typeof userPreference == 'number');
     if(typeof userPreference == 'number'){
+        console.log("userPreference",userPreference);
         setSelectedPaletteNum(userPreference);
     }
   }, []);
