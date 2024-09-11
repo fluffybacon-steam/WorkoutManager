@@ -144,8 +144,9 @@ export default function Home() {
       window.localStorage.removeItem("ga_credentials");
       window.localStorage.removeItem("sheetData");
       window.localStorage.removeItem("sheetUrl");
-      window.localStorage.removeItem("demoComplete");
+      window.localStorage.removeItem("demoHomeComplete");
       window.localStorage.removeItem("demoPlannerComplete");
+      window.localStorage.removeItem("color-palette");
       setUserSheetUrl('');
       setSheetData('');
       popup("Cleared data cache");
@@ -161,7 +162,7 @@ export default function Home() {
         setSheetData(sheetDataJson);
       }
 
-      const demo = window.localStorage.getItem('demoComplete');
+      const demo = window.localStorage.getItem('demoHomeComplete');
       if (demo != "1") {
         setFirstTime(true); // If demo is complete, firstTime should be false
         setRun(true); // Start the tour
@@ -172,7 +173,7 @@ export default function Home() {
       const { action, index, origin, status, type } = data;
   
       if (action === ACTIONS.CLOSE && origin === ORIGIN.KEYBOARD) {
-        window.localStorage.setItem('demoComplete','1');
+        window.localStorage.setItem('demoHomeComplete','1');
       }
   
       if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
@@ -181,7 +182,7 @@ export default function Home() {
       } else if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
         // You need to set our running state to false, so we can restart if we click start again.
         setRun(false);
-        window.localStorage.setItem('demoComplete','1');
+        window.localStorage.setItem('demoHomeComplete','1');
       }
     };
 

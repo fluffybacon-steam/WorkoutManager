@@ -1,14 +1,14 @@
 .wrapper{
-    --bkg: var(--cardBackground);
+    --bkg: var(--body-bg);
     --border-radius:10px;
     --dragWidth: clamp(25px,1em,50px);
     --border-radius:10px;
     --inputWidth: 100px;
     --tableGap: 5px;
-    border:var(--cardBorderOuter) 5px solid;
-    border-right-color:var(--gradHandle);
+    border:var(--firstColor) 5px solid;
+    border-right-color:var(--firstColor);
     border-radius:var(--border-radius);
-    color:var(--cardFont);
+    color:var(--themeColor);
     margin-bottom: 20px;
     gap:15px;
     display:grid;
@@ -21,7 +21,7 @@
             grid-column:2/3;
             display:block;
             width:var(--dragWidth);
-            background-image: radial-gradient(circle, var(--gradHandle) 30%, transparent 30%);
+            background-image: radial-gradient(circle, var(--firstColor) 30%, transparent 30%);
             background-size: 5px 5px;
             border-radius:0 var(--border-radius) var(--border-radius) 0;
         }
@@ -31,7 +31,7 @@
             font-size:1.5rem;
             padding:20px 0 20px 20px;
         }
-        td {border:1px solid var(--cardBorderInner);}
+        td {border:1px solid var(--fourthColor);}
         th{
             font-size:0.75em;
             padding:5px;
@@ -41,9 +41,8 @@
             font-size:0.5em;
         }
         td:has(a){
-            display: flex;
+            span{ padding-right: 10px;}
         }
-        span{ flex-basis:100%;}
         a{
             display: inline-block;
             aspect-ratio: 1/1;

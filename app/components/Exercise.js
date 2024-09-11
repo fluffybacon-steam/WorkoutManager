@@ -54,7 +54,7 @@ export function Exercise({saveExercise, exercise}){
             },
         });
 
-        collapseCard(cardRef);
+        toggleCard(cardRef);
 
     },[cardRef])
 
@@ -80,30 +80,34 @@ export function Exercise({saveExercise, exercise}){
     return(
         <div className={styles.card} ref={cardRef}>
             <div className="wrapper">
-                <Movements exercise={exercise} />
                 <button className="expand" onClick={()=>{toggleCard(cardRef)}}>
                     <svg className="open" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-80 240-320l57-57 183 183 183-183 57 57L480-80ZM298-584l-58-56 240-240 240 240-58 56-182-182-182 182Z"/></svg>
                     <svg className="close" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m296-80-56-56 240-240 240 240-56 56-184-184L296-80Zm184-504L240-824l56-56 184 184 184-184 56 56-240 240Z"/></svg>
                 </button>
+                <Movements exercise={exercise} />
                 <div className="rest-time">
-                    <span>{(timerDuration) ? convertTime(timerDuration,true) : exercise.rest}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M360-840v-80h240v80H360Zm80 440h80v-240h-80v240Zm40 320q-74 0-139.5-28.5T226-186q-49-49-77.5-114.5T120-440q0-74 28.5-139.5T226-694q49-49 114.5-77.5T480-800q62 0 119 20t107 58l56-56 56 56-56 56q38 50 58 107t20 119q0 74-28.5 139.5T734-186q-49 49-114.5 77.5T480-80Zm0-80q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-280Z"/></svg>
                     {restMinMax && (
                         <>
-                        <input 
-                            onChange={(e) => setTimerDuration(e.target.value)} 
-                            type="range" 
-                            id="timer" name="timer" 
-                            min={restMinMax.min} max={restMinMax.max} 
-                            step={0.1}
-                        />
-                        <button onClick={()=>{ setTimerState(true) }}>Start Timer</button>
+                            {Array.from({ length: 3 }, (_, index) => {
+                                const buttonValue = restMinMax.min + ((restMinMax.max - restMinMax.min) / 2) * index;
+                                return (
+                                    <button 
+                                        key={index} 
+                                        onClick={() => {setTimerDuration(buttonValue.toFixed(1));setTimerState(true);}}
+                                    >
+                                        {convertTime(buttonValue.toFixed(1),true)}
+                                    </button>
+                                );
+                            })}
+                            {/* <button onClick={() => setTimerState(true)}>Start Timer</button> */}
                         </>
                     )}
                 </div>
                 <div className="timer-wrapper" hidden={!timerState}>
                     <CountdownCircleTimer
                         key={key}
-                        colors={'var(--activeExercise)'}
+                        colors={'var(--firstColor)'}
                         trailColor="white"
                         isPlaying={timerState}
                         duration={timerDuration ? timerDuration : defaultDuration}
@@ -113,7 +117,9 @@ export function Exercise({saveExercise, exercise}){
                     <button onClick={()=>{
                         setTimerState(false);
                         resetTimer(prevKey => prevKey + 1);
-                    }}>X</button>
+                    }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m336-280 144-144 144 144 56-56-144-144 144-144-56-56-144 144-144-144-56 56 144 144-144 144 56 56ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+                    </button>
                 </div>
                 <div className="notes">
                     <b>Notes:</b> {exercise.notes}
@@ -291,6 +297,7 @@ const Movements = ({exercise}) => {
     )
 }
 
+/** Takes in formatted string of minutes and seconds, returns minutes and seconds as float*/ 
 function parseTimeRange(timeStr) {
     const cleanedStr = timeStr.replace(/~|\s|min/g, '');
     const [min, max] = cleanedStr.split('-').map(Number);
@@ -301,7 +308,6 @@ function parseTimeRange(timeStr) {
 }
 
 const renderTime = ({ remainingTime }) => {
-
     // Calculate minutes and seconds
     const {minutes, seconds } = convertTime(remainingTime);
 
@@ -315,15 +321,17 @@ const renderTime = ({ remainingTime }) => {
     );
   };
 
+/** Takes in seconds, returns minutes and seconds. Return as float or formatted string */ 
 const convertTime = (rawSecs, stringFlag = false) => {
     const minutes = Math.floor(rawSecs / 60);
     const seconds = Math.round(rawSecs % 60);
     if(stringFlag){
-        return `${minutes}:${seconds < 10 ? '0' + seconds : seconds} mins`
+        return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
     }
     return { minutes, seconds}
 }
 
+/** Takes in RPE string, return float */
 function convertRPEtoNum(value) {
     if(!value){
         return
@@ -337,33 +345,24 @@ function convertRPEtoNum(value) {
     }
 }
 
-function collapseCard(ref){
-    if(ref?.current){
-        const card = ref.current;
-        const trueHeight = card.offsetHeight;
-        card.setAttribute('data-height',trueHeight);
-        const collapseHeight = card.querySelector('.movements').offsetHeight;
-        card.style.height = collapseHeight+'px';
-    }
-}
+// function collapseCard(ref){
+//     if(ref?.current){
+//         const card = ref.current;
+//         card.setAttribute('collapsed');
+//     }
+// }
 
-
+/**Toggle whether card is collapsed for not */
 function toggleCard(ref){
     if(ref?.current){
         const card = ref.current;
-        if(card.getAttribute('expanded')){
-            //Collapse
-            const collapseHeight = card.querySelector('.movements').offsetHeight + 10;
-            gsap.to(card,{
-                height: collapseHeight+'px'
-            });
-            card.removeAttribute('expanded');
-        } else {
+        console.log("card.getAttribute('collapsed')",(card.getAttribute('collapsed')));
+        if(card.hasAttribute('collapsed')){
             //Expand
-            gsap.to(card,{
-                height: card.dataset.height+'px'
-            });
-            card.setAttribute('expanded',true);
+            card.removeAttribute('collapsed');
+        } else {
+            //Collapse
+            card.setAttribute('collapsed','');
         }
     }
 }

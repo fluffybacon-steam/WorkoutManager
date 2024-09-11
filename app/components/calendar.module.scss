@@ -6,8 +6,7 @@
     overflow-x: scroll;
     white-space: nowrap;
     width:100%;
-    scrollbar-color: var(--accentColor) var(--dayComplete);
-    padding-bottom: 5px;
+    scrollbar-color: var(--themeColor) var(--firstColor) ;
     :global{
         .day{
             text-wrap: balance;
@@ -15,20 +14,20 @@
             background:none;
             grid-column:span 1;
             grid-row: 1/2;
-            border-color: var(--calendarBar);
+            border-color: var(--firstColor);
             border-width: 5px 2.5px;
             border-style: solid;
             padding:25px;
-            color:var(--calendarFont);
-            background:var(--dayIncomplete);
+            color:var(--themeColor);
+            background:var(--secondColor);
             font-weight:normal;
             font-size:0.5em;
         }
         [data-complete=true]{
-            background:var(--dayComplete);
+            background:var(--thirdColor);
         }
         .current{
-            border-color: var(--dayCurrentDay);
+            border-color: var(--themeColor);
             border-width: 10px;
             font-weight:bold;
         }

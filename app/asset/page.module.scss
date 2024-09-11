@@ -7,8 +7,8 @@
         max-width: 300px;
         padding: 1em 1em;
         margin: 10px 0;
-        background-color: var(--buttonBg);
-        color: var(--buttonColor);
+        background-color: var(--firstColor);
+        color: var(--themeColor);
         text-wrap: balance;
     }
     #loader{
@@ -20,7 +20,7 @@
     }
     .exercise_card{
         --dragWidth: 1em;
-        --bkg: var(--cardBackground);
+        --bkg: var(--body-bg);
         --border-radius: 10px;
         --inputWidth: 100px;
         --tableGap: 5px;

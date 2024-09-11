@@ -3,12 +3,12 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { Draggable } from "gsap/Draggable";
 const styles = {
-    "--bkg" :'var(--cardBackground)',
+    "--bkg" :'var(--body-bg)',
     "--border-radius": '10px',
     "--inputWidth": '100px',
     "--tableGap": '5px',
     background: 'var(--bkg)',
-    border: '1px solid white',
+    border: '1px solid var(--firstColor)',
     borderRadius: 'var(--border-radius)',
     padding: '20px',
     marginBottom: '20px',
@@ -19,7 +19,7 @@ const styles = {
     textAlign: 'center',
     justifyContent: 'center',
     alignItems: 'center',
-    color: 'white'
+    color: 'var(--themeColor)'
 };
 const svg_styles = {
     fill: 'currentColor',
@@ -40,7 +40,7 @@ const sayings = [
     "Are you getting smaller? Guess you aren’t resting enough.",
     "The weights can wait... wait.",
     "Rest. recharge. reborn.",
-    "Let sleep take over, Sweet Prince...ess",
+    "Good night, Sweet Prince... ess?",
     "Slide under those covers now",
     "The only thing you’re curling today are pillows",
     "Lay down and pretend your sleeping."

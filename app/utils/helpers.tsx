@@ -10,9 +10,9 @@ export function popup(message: string, error: boolean = false){
     popup.innerHTML = message;
     popup.classList.add('active');
     if(error){
-        popup.style.setProperty("--accentColor",'red');
+        popup.style.setProperty("--firstColor",'red');
     } else {
-        popup.style.setProperty("--accentColor",'');
+        popup.style.setProperty("--firstColor",'');
     }
     setTimeout(()=>{
         popup.classList.remove('active');

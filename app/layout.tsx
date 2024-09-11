@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from './navbar';
+import ColorPalette from './components/colorPalette';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
         </div>
         <div className='popup' role="alertdialog"></div>
         <header>
+          <ColorPalette />
           <h1>Workout Planner</h1>
           <Navbar />
         </header>

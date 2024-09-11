@@ -72,8 +72,8 @@ export function Warmups({warmUps, showWarmups}) {
             <table>
                 <thead>
                 <tr>
-                    <th scope="col">Reps/Time</th>
-                    <th scope="col">Movement</th>
+                    <th scope="col">Set</th>
+                    <th scope="col">Motion</th>
                 </tr>
                 </thead>
                 <tbody>
