@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import {popup} from '../utils/helpers';
 const palettesDark = [
       {
           '--firstColor':'#023E8A',
@@ -99,6 +100,7 @@ const ColorPalette = () => {
         num += 1;
     }
     setSelectedPaletteNum(num);
+    popup("These colors palettes are awful I know... I am working on that. just wanted to get functionality implemented first");
   };
 
   useEffect(() => {
